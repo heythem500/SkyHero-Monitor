@@ -2,8 +2,9 @@
  SkyHero v2.1 — Bandwidth &amp; Quota Analytics for ASUS Routers running ASUSWRT-Merlin (Unofficial) built on a modern Python foundation.
  
 This project is an example of collaboration between a human and AI — a small experiment built with curiosity and code.
-
+<p align="center">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img01.jpg">
+  </p>
 
 # About 
 
@@ -40,19 +41,6 @@ SkyHero is designed for:
 
 ---
 
-## 🖼️ Screenshots
-
-*( Dashboard overview, Bandwidth charts  , Device quota summary )*
-
-<p align="center">
-  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img02.jpg">
-  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img03.jpg">
-  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img04.jpg">
-  </p>
-
-
----
-
 ### Requirements
 
 - ASUS router with **ASUSWRT-Merlin** firmware
@@ -79,6 +67,20 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
 # 2. Run the installer
 /tmp/mnt/usb-name/skyhero-v2/install.sh
 ```
+
+
+---
+
+## 🖼️ Screenshots
+
+*( Dashboard overview, Bandwidth charts  , Device quota summary )*
+<p align="center">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img02.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img03.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img04.jpg" width="30%" height="auto">
+  </p>
+  
+  ---
 
 ⭐ rate my repo
 Give a ⭐ if this project deserve populrity!
