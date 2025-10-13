@@ -1,0 +1,166 @@
+/* --- Authentication Styles (Login Overlay) --- */
+/* Related: js/auth.js
+   Used by: Authentication Feature
+   MIGRATION STATUS: PHASE 3 - Additive Migration
+*/
+
+#login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Semi-transparent background */
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    /* Further increased width */
+    height: 350px;
+    /* Further increased height */
+    transition: transform 0.3s ease-in-out;
+    /* Smooth transition for mobile keyboard adjustment */
+}
+
+/* Mobile keyboard adjustment */
+@media (max-width: 768px) {
+    .login-box.keyboard-active {
+        transform: translateY(-70px);
+        /* Move up more - well above keyboard */
+    }
+
+    /* Keep login overlay centered by default on mobile */
+    #login-overlay {
+        align-items: center;
+        /* Keep centered initially */
+    }
+
+    /* Only adjust positioning when keyboard is active */
+    #login-overlay.keyboard-mode {
+        align-items: center;
+        /* Stay centered but allow box to move up */
+        padding-top: 0;
+        /* No extra padding needed */
+    }
+}
+
+.login-box h2 {
+    margin-top: 0;
+    color: var(--primary-dark);
+}
+
+.login-box p {
+    margin-bottom: 25px;
+    color: #6c757d;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    outline: none;
+    /* Remove black outline on focus */
+}
+
+.login-box input:focus {
+    outline: none;
+    /* Ensure no outline on focus */
+    border: 1px solid #dee2e6;
+    /* Keep default border on focus */
+}
+
+.login-box button {
+    width: 100%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.login-box button:hover {
+    background: var(--primary-dark);
+}
+
+.error-message {
+    color: var(--danger-color) !important;
+    /* Ensure it's red and not overridden */
+    margin-top: 15px;
+    font-size: 14px;
+    opacity: 0;
+    /* Hidden by default, use opacity for transition */
+    transition: opacity 0.3s ease-in-out;
+    display: flex;
+    /* To align icon and text */
+    align-items: center;
+    justify-content: center;
+}
+
+.error-message.visible {
+    opacity: 1;
+}
+
+.error-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    stroke: var(--danger-color);
+}
+
+.error-text {
+    font-weight: bold;
+    /* Make text bolder */
+    color: var(--danger-color);
+    /* Explicitly set text color to red */
+}
+
+.login-box input.error {
+    border: 1px solid var(--danger-color);
+}
+
+/* Shake animation for incorrect password */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-10px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(10px);
+    }
+}
+
+.shake {
+    animation: shake 0.5s;
+}

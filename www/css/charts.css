@@ -1,0 +1,47 @@
+.navigator-subtle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 5px;
+    background-color: #f8f9fa;
+}
+.navigator-subtle .month-display {
+    font-weight: 600;
+    padding: 5px 10px;
+    color: var(--primary-dark);
+    font-size: 14px;
+    cursor: pointer; /* Add pointer cursor */
+    transition: all 0.1s ease-out; /* Smooth transition for feedback */
+}
+.navigator-subtle .month-display:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+}
+.navigator-subtle .month-display.month-display-clicked {
+    outline: 2px solid var(--primary-color); /* Outline on click */
+    outline-offset: 2px;
+    background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background */
+}
+.navigator-subtle .arrow-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 8px;
+}
+.navigator-subtle .arrow-btn:disabled {
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.quick-filter-button-item {
+    height: 36px;
+    line-height: 36px; /* To vertically center text */
+    flex-shrink: 0; /* Prevent shrinking */
+    padding: 0 20px; /* Adjust padding to account for line-height */
+    font-size: 14px;
+}

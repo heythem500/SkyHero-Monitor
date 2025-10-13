@@ -1,0 +1,440 @@
+/* --- Quota Card Styles --- */
+.quota-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-top: 25px;
+    /* Space from controls */
+    /* box-shadow: var(--shadow); */
+    /* Hidden as per request */
+    /* border: 1px solid var(--border-color); */
+    /* Hidden as per request */
+    text-align: center;
+}
+
+.quota-card h3 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 14px;
+    /* Smaller font size for the header */
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    /* Space between elements in the header */
+}
+
+.quota-card h3 span {
+    font-size: 14px;
+    /* Keep the span text size consistent with the header */
+    font-weight: bold;
+}
+
+.progress-bar-container {
+    width: 100%;
+    max-width: 75%;
+    /* Set max-width to 75% */
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    height: 26px;
+    /* Keep height as previously set */
+    overflow: hidden;
+    margin-bottom: 10px;
+    position: relative;
+    /* For absolute positioning of percentage text */
+    margin-left: auto;
+    /* Center the container */
+    margin-right: auto;
+    /* Center the container */
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    display: flex;
+    /* To center text vertically */
+    align-items: center;
+    /* To center text vertically */
+    justify-content: center;
+    /* To center text horizontally */
+}
+
+.progress-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    /* White text color for contrast */
+    font-weight: bold;
+    font-size: 14px;
+    z-index: 1;
+    /* Ensure text is above the bar */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    /* For readability */
+}
+
+.progress-green {
+    background-color: var(--success-color);
+}
+
+.progress-yellow {
+    background-color: var(--warning-color);
+}
+
+.progress-orange {
+    background-color: #fd7e14;
+}
+
+/* Bootstrap orange */
+.progress-red {
+    background-color: var(--danger-color);
+}
+
+.quota-message {
+    font-size: 14px;
+    color: var(--text-muted);
+    min-height: 20px;
+    /* To prevent layout shift */
+}
+
+/* --- Device Card Grid --- */
+.device-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px; /* Add this line */
+}
+
+/* Color coding for percentage text and bars */
+.traffic-high {
+    color: var(--danger-color);
+}
+.traffic-medium {
+    color: var(--warning-color);
+}
+.traffic-low {
+    color: var(--success-color);
+}
+
+/* Apply background color to the percentage bar based on traffic class */
+.percentage-bar.traffic-high {
+    background-color: var(--danger-color);
+}
+.percentage-bar.traffic-medium {
+    background-color: var(--warning-color);
+}
+.percentage-bar.traffic-low {
+    background-color: var(--success-color);
+}
+
+.device-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Ensures child elements adhere to border-radius */
+    position: relative;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.device-card.selected {
+    border-color: #e0e0e0;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    box-shadow: 0 0 0 3px rgba(224, 224, 224, 0.3), 0 10px 30px rgba(224, 224, 224, 0.2);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.device-card.locked {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.card-header, .card-body, .card-footer {
+    padding: 12px 15px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 15px;
+}
+
+.selection-circle-test {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    margin-left: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.selection-circle-test:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.selection-circle-test.selected {
+    background: #007bff;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.selection-circle-test.selected::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.device-name {
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.device-mac {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.stat-row span:last-child {
+    font-weight: 600;
+}
+
+.card-footer {
+    border-top: 1px solid var(--border-color);
+    background-color: #f8f9fa;
+}
+
+.trend-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.sparkline {
+    width: 80px; /* Adjust as needed */
+    height: 20px;
+}
+
+.alert-row {
+    font-size: 12px;
+    padding: 8px;
+    margin-top: 8px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.alert-high {
+    background-color: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffc107;
+}
+
+.alert-normal {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.percentage-bar-container {
+    background-color: #e9ecef;
+    border-radius: 5px;
+    height: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.percentage-bar {
+    background-color: var(--primary-color);
+    height: 100%;
+    border-radius: 5px;
+}
+
+.screenshot {
+    display: none;
+    text-align: center;
+    padding: 40px 15px;
+}
+
+.device-card.selected .screenshot {
+    display: block;
+}
+
+.device-card.selected .card-body .stat-row:nth-child(n+2) {
+    display: none;
+}
+
+.device-card.selected .card-footer {
+    display: none;
+}
+
+.label-with-tooltip {
+    display: inline-flex;
+    align-items: center;
+}
+
+.tooltip-icon {
+    margin-inline-start: 3px;
+    cursor: help;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #666;
+    transition: background-color 0.2s;
+}
+
+.tooltip-icon:hover {
+    background-color: #888;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: black;
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    font-size: 12px;
+    box-shadow: var(--shadow);
+    z-index: 10000;
+    max-width: 250px;
+    word-wrap: break-word;
+    white-space: pre-line;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+.screenshot-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.screenshot-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.screenshot-btn:hover::before {
+    left: 100%;
+}
+
+.screenshot-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.6);
+}
+
+.screenshot-btn:active {
+    transform: translateY(-1px);
+}
+
+.sparkline-bar-chart rect {
+    rx: 1px; /* Add a slight border-radius to the bars */
+}
+
+.trend-row .sparkline-bar-chart {
+    width: 120px; /* Increase the overall width of the chart area */
+    height: 24px;  /* Increase the overall height of the chart area */
+}
+
+/* Tooltip styles */
+.label-with-tooltip {
+    display: inline-flex;
+    align-items: center;
+}
+
+.tooltip-icon {
+    margin-left: 3px;
+    cursor: help;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #666;
+    transition: background-color 0.2s;
+}
+
+.tooltip-icon:hover {
+    background-color: #888;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: black;
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    font-size: 12px;
+    box-shadow: var(--shadow);
+    z-index: 10000;
+    max-width: 250px;
+    word-wrap: break-word;
+    white-space: pre-line;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}

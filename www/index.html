@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SkyHero-Tracking v2.1 Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="skyhero-icon.png" type="image/png">
+    
+    <!-- Load modular CSS files in order -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <link rel="stylesheet" href="css/charts.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/grouping.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    
+    <!-- Chart.js library -->
+    <script src="third-party/chartjs.min.js"></script>
+    <!-- JSON5 library -->
+    <script src="third-party/json5.min.js"></script>
+</head>
+<body>
+    <div id="dashboard-content">
+        <div class="header">
+        <div class="main-title-group">
+            <h1><img src="skyhero-icon.png" alt="Skyhero Icon" class="logo-image">SkyHero Monitor</h1>
+            <span class="tagline" data-i18n="Network Analytics Dashboard">Network Analytics Dashboard</span>
+            <span class="version-info">v2.1</span>
+            <div class="language-selector">
+                <select id="lang-switcher">
+                    <option value="en" selected>English</option>
+                    <option value="ar">العربية</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="it">Italiano</option>
+                    <option value="id">Indonesian</option>
+                </select>
+            </div>
+        </div>
+        <div class="traffic-lights">
+            <div class="traffic-light-dot"></div>
+            <div class="traffic-light-dot"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 data-i18n="Controls">Controls</h2>
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3 data-i18n="Quick Filters">Quick Filters</h3>
+                    <div class="quick-filters">
+                        <button class="quick-filter-button-item" data-filter-type="all_time" data-i18n="All Time">All Time</button>
+<button class="quick-filter-button-item" data-filter-type="today" data-i18n="Today">Today</button>
+<button class="quick-filter-button-item" data-filter-type="yesterday" data-i18n="Yesterday">Yesterday</button>
+<button class="quick-filter-button-item" data-filter-type="last_7_days" data-i18n="Last 7 Days">Last 7 Days</button>
+                        <div class="navigator-subtle" id="month-navigator" style="display: none;">
+                            <button class="arrow-btn" id="next-month">&lsaquo;</button>
+                            <div class="month-display" id="current-month-display"></div>
+                            <button class="arrow-btn" id="prev-month">&rsaquo;</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <h3 data-i18n="Billing Period Calculator">Billing Period Calculator</h3>
+                    <div class="billing-controls">
+                        <div class="group"><label data-i18n="Start Date">Start Date</label><input type="date" id="billingStart" value="2025-06-01"></div>
+                        <div class="group">
+                            <label data-i18n="Period">Period</label>
+                            <select id="billingDays">
+                                <option value="15" data-i18n="15 Days">15 Days</option>
+                                <option value="28" data-i18n="28 Days">28 Days</option>
+                                <option value="29" data-i18n="29 Days">29 Days</option>
+                                <option value="30" selected data-i18n="30 Days">30 Days</option>
+                                <option value="31" data-i18n="31 Days">31 Days</option>
+                            </select>
+                        </div>
+                        <button class="apply-btn" id="apply-filter-btn" data-i18n="Apply Filter">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+            <div class="quota-card">
+                <div class="quota-header-and-details">
+                    <h3>Monthly Quota Usage: <span id="quotaUsed">0 GB</span> / <span id="quotaTotal">0 GB</span></h3>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="quotaProgressBar"></div>
+                    <span class="progress-percentage" id="quotaPercentage"></span>
+                </div>
+                <div class="quota-message" id="quotaMessage"></div>
+            </div>
+        </div>
+
+        <div id="restore-warning" style="display:none;">
+            <span id="restore-message"></span>
+            <a href="#" id="view-restore-history-link">View Full History</a>
+            <button id="close-restore-warning-btn">✕</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px; display: none;" id="palestineKidContainer">
+            <div id="palestineImageWrapper" style="display: inline-block; position: relative;">
+                <img src="palestine_kid.png" alt="Stand with Palestine" style="width: 100%; height: auto; display: block;">
+                <button id="hidePalestineKid" style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.5); color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; display: none;">Hide <span id="countdownSpan"></span></button>
+                <button id="keepPalestineKid" style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.5); color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; display: none;">Keep It</button>
+            </div>
+        </div>
+
+        <div id="history-modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button" id="close-history-modal-btn">&times;</span>
+                <h2>DB Restore History</h2>
+                <pre id="history-log-content"></pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 id="overview-title">Period Overview: All Time</h2>
+            <div class="overview-grid">
+                <div class="chart-container">
+                    <h3 id="bar-chart-title">Monthly Breakdown</h3>
+                    <canvas id="dailyBarChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 data-i18n="Top Device Usage">Top Device Usage</h3>
+                    <canvas id="devicePieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Breakdown Modal -->
+        <div id="dailyBreakdownModal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button" id="close-daily-breakdown-modal-btn">&times;</span>
+                <h2>View Daily Data</h2>
+                <p id="dailyBreakdownMessage"></p>
+                <div class="modal-actions">
+                    <button id="confirm-daily-breakdown-btn">View Data</button>
+                    <button id="cancel-daily-breakdown-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Card Modal -->
+        <div id="deviceCardModal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-button" id="close-device-card-modal-btn">&times;</span>
+                <div id="deviceCardModalContent">
+                    <!-- Device card will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="Total Usage Statistics">Total Usage Statistics</h2>
+            <div class="total-stats">
+                <div class="stat-box"><div class="label" data-i18n="Total Devices">Total Devices</div><div class="value" id="totalDevices">0</div></div>
+                <div class="stat-box" id="avgDailyTrafficBox" style="display:none;"><div class="label" data-i18n="Avg. Daily Traffic">Avg. Daily Traffic</div><div class="value" id="avgDailyTraffic">0 GB</div></div>
+                <div class="stat-box"><div class="label" data-i18n="Total Download">Total Download</div><div class="value" id="totalDownload">0 GB</div></div>
+                <div class="stat-box"><div class="label" data-i18n="Total Upload">Total Upload</div><div class="value" id="totalUpload">0 GB</div></div>
+                <div class="stat-box"><div class="label" data-i18n="Total Traffic">Total Traffic</div><div class="value" id="totalTraffic">0 GB</div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="Top Applications/Websites">Top Applications/Websites</h2>
+            <div class="chart-container">
+                <canvas id="topAppsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-i18n="Device Traffic">Device Traffic</h2>
+            <input type="text" id="deviceSearch" placeholder="Search for a device..." data-i18n-placeholder="Search for a device...">
+            
+            <!-- Smart Grouping Area -->
+            <div id="grouping-area" class="grouping-area">
+                <div id="pills-container" class="pills-container"></div>
+                <div class="analytics-container">
+                    <div id="analytics-summary" class="analytics-summary"></div>
+                    <div class="chart-container" style="width: 150px; height: 150px;">
+                        <canvas id="group-chart"></canvas>
+                    </div>
+                </div>
+                <div class="save-group-container">
+                    <div class="input-and-save-btn">
+                        <input type="text" id="group-name-input" data-i18n-placeholder="Enter group name..." placeholder="Enter group name...">
+                        <button id="save-group-btn" data-i18n="Save Group">Save Group</button>
+                    </div>
+                    <button id="cancel-update-btn" data-i18n="Cancel Update" style="display:none;">Cancel Update</button>
+                    <button id="toggle-group-chart-btn" data-i18n="Hide Chart">Hide Chart</button>
+                </div>
+            </div>
+            <div id="saved-groups-container" class="saved-groups-container"></div>
+
+            <div class="table-responsive" id="device-table-container">
+    <table>
+        <thead><tr><th id="checkbox-header"><div id="selection-controls"><input type="checkbox" id="select-all-checkbox" style="display:none; cursor:pointer;" title="Select all devices"><span id="clear-all-devices-icon" style="display:none; cursor:pointer; font-size: 1.2em; color: #dc3545;" title="Clear all selected devices">&times;</span></div></th><th id="sort-device-name" data-i18n="Device Name">Device Name ↕</th><th id="sort-mac-address" data-i18n="MAC Address">MAC Address ↕</th><th id="sort-download" data-i18n="Download">Download ↕</th><th id="sort-upload" data-i18n="Upload">Upload ↕</th><th id="sort-percentage" data-i18n="Percentage">Percentage ↕</th><th id="sort-total" data-i18n="Total">Total ↕</th></tr></thead>
+        <tbody id="deviceTableBody"></tbody>
+    </table>
+</div>
+<div id="device-cards-container" class="device-cards-grid"></div>
+<div class="mobile-only">
+    <h4 style="text-align: center; margin-top: 10px; margin-bottom: 5px; font-weight: normal; font-size: 0.9em;">↓ Support the Developer</h4>
+    <div style="text-align: center;">
+        <a href="https://www.buymeacoffee.com/heythem500" target="_blank">
+            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 40px !important;width: 145px !important;">
+        </a>
+    </div>
+</div>
+        </div>
+    </div>
+
+    <div id="loader-overlay" style="display:none;">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>Generating custom report...</p>
+        </div>
+    </div>
+
+    
+
+    <footer>
+        <span>Free Palestine <img src="palestine_flag.png" alt="Flag of Palestine" style="height: 16px; vertical-align: middle;"> | &copy; 2025 heythem. All rights reserved. <a href="https://github.com/heythem500" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/github.svg" alt="GitHub" style="height: 16px; vertical-align: middle;"></a></span>
+    </footer>
+
+    
+    <!-- Load modular JS files in order -->
+    <script type="module" src="js/utils.js"></script>
+    <script type="module" src="js/api.js"></script>
+    <script type="module" src="js/components.js"></script>
+    <script type="module" src="js/modals.js"></script>
+    <script type="module" src="js/charts.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/grouping.js"></script>
+    <script type="module" src="js/i18n.js"></script>
+    <script type="module" src="js/events.js"></script>
+    <script type="module" src="js/main.js"></script>
+    
+    <script src="third-party/dom-to-image-more.min.js"></script>
+    </div>
+    <div id="login-overlay" style="display:none;">
+        <div class="login-box">
+            <h2>🔒Secure Access</h2>
+            <p>Please enter the password to access the dashboard.</p>
+            <form id="login-form">
+                <input type="password" id="password-input" placeholder="Password">
+                <button type="submit">Unlock</button>
+                <p class="error-message" id="error-message">
+                    <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    <span class="error-text" data-i18n="Incorrect Password">Incorrect Password</span>
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

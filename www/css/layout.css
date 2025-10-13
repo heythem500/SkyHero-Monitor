@@ -1,0 +1,423 @@
+.header {
+    background-color: #f5f5f5;
+    /* Light Gray */
+    background: linear-gradient(to bottom, #f5f5f5, #eeeeee);
+    /* Subtle gradient */
+    color: var(--text-color);
+    /* Dark text for contrast */
+    padding: 15px 25px;
+    /* More compact padding */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #d0d0d0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.header .main-title-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    /* Allow wrapping on smaller screens */
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.header .logo {
+    font-size: 26px;
+    margin-right: 8px;
+    vertical-align: middle;
+    color: var(--primary-color);
+}
+
+/* Superman logo image sizing */
+.header .logo-image {
+    height: 34px;
+    width: auto;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.header .tagline {
+    font-size: 13px;
+    color: var(--text-muted);
+    /* Muted text from dashboard */
+    margin-left: 15px;
+    white-space: nowrap;
+    /* Keep on one line */
+}
+
+.header .version-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    background-color: #e9ecef;
+    /* Gray background */
+    padding: 4px 8px;
+    border-radius: 5px;
+    margin-left: 10px;
+    /* Space from tagline */
+    white-space: nowrap;
+}
+
+.language-selector {
+    margin-left: 15px;
+}
+
+#lang-switcher {
+    background-color: #e9ecef;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 25px;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.card h2 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.control-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.control-section {
+    min-width: 250px;
+}
+
+.control-section h3 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.quick-filters,
+.billing-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.billing-controls .group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.billing-controls label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+input[type="date"],
+select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Global button styles - Original blue design */
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500; /* Changed from 600 */
+    transition: all 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button.active {
+    background: var(--primary-dark);
+    font-weight: 700;
+}
+
+/* Apply button - now uses the global blue design */
+.apply-btn {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.apply-btn:hover {
+    background: #157347;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 80px;
+    /* Increased gap for more space between charts */
+    align-items: flex-start;
+}
+
+.chart-container {
+    position: relative;
+    /* Required by Chart.js for responsiveness */
+    width: 100%;
+}
+
+/* Constrain the height of the top apps chart on larger screens to prevent it from being too tall */
+#topAppsChart {
+    max-height: 350px;
+    /* Adjusted height for desktop */
+}
+
+.chart-container h3 {
+    font-size: 16px;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--text-muted);
+}
+
+.total-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-box {
+    background: var(--light-color);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+
+.stat-box .label {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+#avgDailyTrafficBox {
+    background-color: #e9ecef; /* A slightly lighter gray to differentiate */
+}
+
+.stat-box .value {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 8px 0;
+    color: var(--primary-dark);
+}
+
+#deviceSearch {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    /* Allows horizontal scrolling for tables */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 600px;
+    /* Ensure table doesn't shrink too much */
+}
+
+th {
+    background: #f5f5f5;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--primary-dark);
+    cursor: pointer;
+    user-select: none;
+}
+
+th:hover {
+    background: #e9e9e9;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background: #f9f9f9;
+}
+
+.traffic-high {
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+.traffic-medium {
+    color: var(--warning-color);
+    font-weight: 500;
+}
+
+.traffic-low {
+    color: var(--success-color);
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    font-size: 14px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+}
+
+/* --- Decorative Traffic Lights --- */
+.traffic-lights {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 20px;
+    /* Space from header content */
+}
+
+.traffic-light-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ccc;
+    /* Default off state */
+    opacity: 0.5;
+    animation: pulse-lights 3s infinite ease-in-out;
+    /* Animation */
+}
+
+.traffic-light-dot:nth-child(1) {
+    background-color: #dc3545;
+    animation-delay: 0s;
+}
+
+/* Red */
+.traffic-light-dot:nth-child(2) {
+    background-color: #ffc107;
+    animation-delay: 1s;
+}
+
+/* Yellow */
+.traffic-light-dot:nth-child(3) {
+    background-color: #198754;
+    animation-delay: 2s;
+}
+
+/* Green */
+
+.device-support-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+}
+
+.device-support-section p {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.support-button-container {
+    text-align: center;
+}
+
+.buymecoffee-close-btn {
+    display: block;
+    margin: 0 auto 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+}
+
+.buymecoffee-close-btn:hover {
+    color: #333;
+}
+
+.device-support-section {
+    position: relative;
+}
+
+.support-close-btn:hover {
+    color: #333;
+}
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+    .support-close-btn {
+        display: none;
+    }
+}
+
+@keyframes pulse-lights {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    33% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    66% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+}

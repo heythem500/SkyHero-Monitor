@@ -1,0 +1,604 @@
+/* --- Restore Notification Banner --- */
+#restore-warning {
+    padding: 15px;
+    margin: 20px auto;
+    max-width: 1400px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-left: 5px solid #ff9800;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #664d03;
+}
+
+#restore-warning a {
+    color: #664d03;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 1px solid #664d03;
+}
+
+#restore-warning button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.6;
+    color: #664d03;
+    padding: 0 10px;
+}
+
+#restore-warning button:hover {
+    opacity: 1;
+}
+
+/* --- History Modal --- */
+#history-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 700px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: var(--primary-dark);
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#history-log-content {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+}
+
+/* --- Daily Breakdown Modal --- */
+#dailyBreakdownModal {
+    position: fixed;
+    z-index: 1001; /* Higher than other modals if needed */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#dailyBreakdownModal .modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Center vertically and horizontally */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px; /* Smaller modal for confirmation */
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+#dailyBreakdownModal .modal-content h2 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 20px;
+    border-bottom: none; /* No border for this modal's title */
+    padding-bottom: 0;
+    margin-bottom: 15px;
+}
+
+#dailyBreakdownModal .modal-content p {
+    font-size: 16px;
+    margin-bottom: 25px;
+}
+
+#dailyBreakdownModal .modal-actions button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+#dailyBreakdownModal .modal-actions button:first-child {
+    background: var(--primary-color);
+    color: white;
+}
+
+#dailyBreakdownModal .modal-actions button:first-child:hover {
+    background: var(--primary-dark);
+}
+
+#dailyBreakdownModal .modal-actions button:last-child {
+    background: var(--secondary-color);
+    color: white;
+}
+
+#dailyBreakdownModal .modal-actions button:last-child:hover {
+    background: #5a6268;
+}
+
+/* --- Device Card Modal --- */
+#deviceCardModal {
+    position: fixed;
+    z-index: 1001; /* Higher than other modals if needed */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#deviceCardModal .modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Center vertically and horizontally */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%; /* Wider for device card */
+    max-width: 900px; /* Increased max width for split view */
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Split View Layout - NEW ADDITION ONLY */
+.split-view {
+    display: flex;
+    gap: 30px;
+}
+
+.split-view > div {
+    flex: 1;
+}
+
+.device-overview-panel h3 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 18px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.device-card-wrapper {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 15px;
+    overflow: hidden; /* Ensures content respects border-radius */
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+    .split-view {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    #deviceCardModal .modal-content {
+        max-width: 450px; /* Smaller width on mobile */
+    }
+}
+
+/* Shrinking the Split View Window (Desktop Only) */
+@media (min-width: 769px) {
+    #deviceCardModal .modal-content {
+        transform: scale(0.85);
+        transform-origin: center; /* Ensures scaling happens from the center */
+    }
+
+    /* Minimal adjustments for non-EN non-AR languages to reduce expansion impact */
+    :not([data-lang="en"]):not([data-lang="ar"]) .split-view {
+        gap: 60px; /* Reduced from 80px to minimize expansion */
+    }
+
+    :not([data-lang="en"]):not([data-lang="ar"]) #deviceCardModal .modal-content {
+        padding: 18px; /* Reduced from 20px for additional space */
+        overflow-x: auto; /* Handle overflow gracefully */
+    }
+
+    :not([data-lang="en"]):not([data-lang="ar"]) .summary-section {
+        max-width: 400px; /* Constrain personalized card to reduce expansion */
+    }
+}
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+    position: relative; /* For close button positioning */
+}
+
+#deviceCardModal .modal-content .close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#deviceCardModal .modal-content .close-button:hover {
+    color: #000;
+}
+
+#deviceCardModalContent {
+    padding-top: 20px; /* Space for close button */
+}
+
+/* Adjust device card styling for modal context */
+#deviceCardModal .device-card {
+    box-shadow: none; /* Remove shadow as modal has its own */
+    border: none; /* Remove border as modal has its own */
+}
+
+/* Style for clickable device names in the table */
+td span[onclick^="window.showDeviceCardModalFromTable"] {
+    cursor: pointer; /* Indicate clickability */
+    transition: text-decoration 0.2s, color 0.2s; /* Smooth transition */
+}
+
+td span[onclick^="window.showDeviceCardModalFromTable"]:hover {
+    text-decoration: underline; /* Underline only on hover */
+    color: var(--primary-dark); /* Subtle color change on hover */
+}
+
+.summary-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 15px;
+}
+
+.summary-section h3 {
+    margin-top: 0;
+    color: var(--primary-dark);
+    font-size: 18px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.chart-container-modal {
+    margin: 20px 0;
+    position: relative;
+    height: 250px;
+}
+
+.monthly-usage {
+    font-size: 16px;
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.monthly-usage span {
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.monthly-usage .js-localize-monthly-usage-label {
+    color: var(--text-color);
+    font-weight: normal;
+}
+
+.monthly-usage .monthly-usage-value {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.top-apps {
+    margin-top: 20px;
+}
+
+.top-apps h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.app-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.app-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.app-list li:last-child {
+    border-bottom: none;
+}
+
+.app-name {
+    color: var(--text-muted);
+}
+
+.app-usage {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    /* border-bottom: 1px solid var(--border-color); */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 20px;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Hide selection and screenshot elements in device modal */
+.modal-content .selection-circle-test,
+.modal-content .screenshot {
+    display: none;
+}
+
+/* Modal Settings Icon */
+.modal-settings-icon {
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    margin-right: 1px;
+    display: inline-block;
+}
+
+.modal-settings-icon:hover {
+    opacity: 1;
+}
+
+/* Modal Settings Overlay */
+.modal-settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-settings-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 10000;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .modal-settings-content {
+        max-width: 320px;
+        padding: 15px;
+    }
+}
+
+.modal-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-settings-header h3 {
+    margin: 0;
+    color: #343a40;
+}
+
+.modal-settings-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-settings-close:hover {
+    color: #dc3545;
+}
+
+.modal-settings-body {
+    margin-bottom: 20px;
+}
+
+.setting-group {
+    margin-bottom: 15px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.setting-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.modal-settings-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+.btn-save {
+    background: #007bff;
+    color: white;
+}
+
+.btn-save:hover {
+    background: #0056b3;
+}
+
+/* Language Toggle Styles */
+.language-toggle {
+    display: flex;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.language-toggle button {
+    padding: 6px 12px;
+    border: none;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.language-toggle button.active {
+    background: #007bff;
+    color: white;
+}
+
+.language-toggle button:not(.active):hover {
+    background: #e9ecef;
+}
+
+/* Modal Reset Options */
+.modal-reset-options {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.btn-small:hover {
+    background: #e9ecef;
+}
+
+.btn-small .icon {
+    font-size: 14px;
+}
+
+.btn-reset-lang {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-reset-lang:hover {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.btn-clear-storage {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-clear-storage:hover {
+    background: #f8d7da;
+    border-color: #dc3545;
+}

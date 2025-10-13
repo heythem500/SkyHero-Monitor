@@ -1,0 +1,26 @@
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0a58ca;
+    --secondary-color: #6c757d;
+    --card-bg: #ffffff;
+    --body-bg: #f8f9fa;
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    --border-radius: 12px;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --success-color: #198754;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    background: var(--body-bg);
+    color: var(--text-color);
+}

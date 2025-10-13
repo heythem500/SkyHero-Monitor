@@ -1,0 +1,600 @@
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .header {
+        flex-direction: column;
+        /* Stack items vertically */
+        align-items: flex-start;
+        /* Align items to the start */
+        padding: 10px 15px;
+    }
+
+    .header .main-title-group {
+        width: 100%;
+        /* Take full width */
+        justify-content: space-between;
+        /* Distribute space between title and sub-info */
+        margin-bottom: 10px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .header .logo {
+        font-size: 24px;
+    }
+
+    .header .tagline,
+    .header .version-info {
+        margin-left: 8px;
+        font-size: 12px;
+    }
+
+    .traffic-lights {
+        width: 100%;
+        /* Take full width */
+        justify-content: flex-end;
+        /* Align lights to the right */
+        margin-left: 0;
+    }
+
+    .control-panel {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .control-section {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .overview-grid {
+        grid-template-columns: 1fr;
+        /* Stack charts vertically */
+        gap: 40px;
+        /* A bit more space on mobile */
+    }
+
+    .chart-container {
+        min-height: 280px;
+    }
+
+    .chart-container canvas {
+        touch-action: manipulation;
+        /* Apply only on mobile */
+    }
+
+    #topAppsChart {
+        max-height: none;
+        /* Reset desktop constraint */
+    }
+
+    #topAppsChart canvas {
+        height: auto;
+        /* Allow Chart.js to determine height */
+    }
+
+    #device-table-container,
+    #device-table-container thead {
+        display: none;
+    }
+
+    #device-cards-container {
+        display: grid;
+    }
+
+}
+
+/* Palestine Kid Image Hide Button Hover Effect */
+#hidePalestineKid,
+#keepPalestineKid {
+    display: none !important;
+    /* Hidden by default */
+}
+
+#palestineKidContainer:hover #hidePalestineKid,
+#palestineKidContainer:hover #keepPalestineKid {
+    display: block !important;
+    /* Show on hover */
+}
+
+/* --- Palestine Image Sizing --- */
+#palestineImageWrapper {
+    max-width: 25%;
+    /* Default size for desktop */
+    transition: max-width 0.3s ease-in-out;
+}
+
+/* Media Query for mobile devices */
+@media (max-width: 768px) {
+    #palestineImageWrapper {
+        max-width: 60%;
+        /* Larger size for mobile */
+    }
+}
+
+/* [OPTIONAL/REVERSIBLE] Hide Palestine Kid container on desktop by default */
+@media (min-width: 769px) {
+    #palestineKidContainer {
+        display: none;
+        /* Hidden on desktop by default */
+    }
+}
+
+/* --- Palestine Kid Image Styles --- */
+#palestineKidContainer {
+    display: none;
+    position: relative;
+    margin: 20px auto;
+    text-align: center;
+}
+
+/* Initial reveal animation */
+#palestineKidContainer.reveal {
+    display: block;
+    animation: reveal 1s ease-out;
+}
+
+@keyframes reveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Banner mode - moves to left side after 3 seconds (desktop only) */
+#palestineKidContainer.banner-mode {
+    position: fixed;
+    max-width: 280px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    z-index: 5;
+    margin: 0;
+    text-align: left;
+    /* Animate position with a beautiful curved path */
+    animation: moveToBanner 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes moveToBanner {
+     0% {
+         left: 50%;
+         top: 50%;
+         transform: translate(-50%, -50%) scale(1);
+         opacity: 1;
+     }
+     30% {
+         transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+         opacity: 1;
+         filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 15px rgba(0, 128, 0, 0.8));
+     }
+     70% {
+         left: 20%;
+         top: 50%;
+         transform: translate(-50%, -50%) scale(1.05) rotate(-2deg);
+         opacity: 1;
+         filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 10px rgba(0, 128, 0, 0.6));
+     }
+     100% {
+         left: 5px;
+         top: 50%;
+         transform: translateY(-50%) scale(1) rotate(0deg);
+         opacity: 1;
+         filter: none;
+     }
+ }
+
+#palestineKidContainer.banner-mode #palestineImageWrapper {
+    max-width: 265px;
+    animation: resizeWrapper 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes resizeWrapper {
+    0% {
+        max-width: initial;
+    }
+    100% {
+        max-width: 265px;
+    }
+}
+
+#palestineKidContainer.banner-mode img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile-specific subtle movement */
+@media (max-width: 768px) {
+    #palestineKidContainer.mobile-subtle-move {
+        animation: mobileSubtleMove 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+    }
+    
+    @keyframes mobileSubtleMove {
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 1;
+        }
+        30% {
+            transform: translate(-50px, -10px) scale(1.08) rotate(5deg);
+            opacity: 1;
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 15px rgba(0, 128, 0, 0.8));
+        }
+        70% {
+            transform: translate(-25px, 5px) scale(1.04) rotate(-2deg);
+            opacity: 1;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 10px rgba(0, 128, 0, 0.6));
+        }
+        100% {
+            transform: translate(0, 0) scale(1) rotate(0deg);
+            opacity: 1;
+            filter: none;
+        }
+    }
+}
+
+/* Hidden state - fade out with slide-up animation */
+#palestineKidContainer.hidden {
+    animation: slideUp 1.5s ease-in-out forwards;
+}
+
+@keyframes slideUp {
+     0% {
+         opacity: 1;
+         transform: translateY(-50%);
+     }
+     100% {
+         opacity: 0;
+         transform: translateY(-100vh);
+     }
+ }
+
+@keyframes bloodDrip {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, 100px) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, 200px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+.blood-drop {
+    position: absolute;
+    background: #dc3545;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+/* --- Loader Overlay --- */
+#loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-content {
+    text-align: center;
+    color: white;
+}
+
+.spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Desktop-only blur effect */
+@media (min-width: 769px) {
+    #dashboard-content.blurred {
+        filter: blur(1px) brightness(0.7);
+        /* Adjusted blur for better distinction */
+    }
+}
+
+.summary-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+#emoji-picker {
+    position: absolute;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: var(--shadow);
+    display: none;
+    z-index: 1002;
+    width: 200px;
+    flex-wrap: wrap;
+    gap: 5px;
+    top: 100%;
+    left: 0;
+}
+
+#remove-emoji-feature-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #aaa;
+    margin-left: auto;
+}
+
+#remove-emoji-feature-btn:hover {
+    color: #000;
+}
+
+.summary-controls .summary-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.language-toggle {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.language-toggle button {
+    background: #f8f9fa;
+    color: var(--text-color);
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+    border-radius: 0; /* Remove individual button border-radius */
+}
+
+.language-toggle button.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.language-toggle button:hover:not(.active) {
+    background-color: #e9ecef;
+}
+
+.rtl-text {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Adjustments for specific elements if needed */
+.rtl-text .app-name {
+    /* Further adjustments for app names if they need specific alignment */
+}
+
+
+.summary-controls .summary-controls-row > div[style*="position: relative"] {
+    position: relative;
+}
+
+#summaryTitleInput {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.editable-title {
+    min-height: 40px; /* Match button height */
+    line-height: 1.5;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    flex-grow: 1;
+    cursor: text;
+}
+
+.editable-title:empty:before {
+    content: attr(placeholder);
+    color: var(--text-muted);
+    pointer-events: none; /* Allows clicking through to the div */
+}
+
+#saveSummaryImageBtn {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+#saveSummaryImageBtn:hover {
+    background: #157347;
+}
+
+/* Mobile styles for save button */
+@media (max-width: 767px) {
+    #saveSummaryImageBtn {
+        padding: 7px 9px;
+        font-size: 12.5px;
+        border-radius: 4px;
+    }
+}
+
+#emoji-btn {
+    color: rgb(73, 80, 87);
+    cursor: pointer;
+    font-size: 12px; /* Smaller font size */
+    font-weight: 500;
+    flex-shrink: 0;
+    background: rgb(248, 249, 250);
+    border: 1px solid var(--border-color);
+    padding: 5px 7px; /* Smaller padding */
+    border-radius: 6px;
+    transition: 0.3s;
+    white-space: nowrap;
+}
+
+#emoji-btn:hover {
+    background: rgb(233, 236, 239);
+    border-color: rgb(173, 181, 189);
+}
+
+/* Mobile-specific adjustments for Chart.js legend */
+@media (max-width: 768px) {
+    .chartjs-render-monitor ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+    }
+
+    .chartjs-render-monitor li {
+        font-size: 10px;
+        margin: 2px 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .chartjs-render-monitor li span {
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+}
+
+/* --- Clean Screenshot Overlay for Mobile --- */
+#clean-screenshot-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 2001;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.clean-summary-container {
+    background-color: #fefefe;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 20px;
+}
+
+.clean-close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    z-index: 1003;
+}
+
+.clean-close-button:hover {
+    color: #000;
+}
+
+/* Mobile-specific adjustments for clean screenshot overlay */
+@media (max-width: 768px) {
+    .clean-summary-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .summary-content .summary-section {
+        padding: 20px;
+    }
+
+    .summary-content .chart-container-modal {
+        height: 150px;
+        margin: 10px 0;
+    }
+
+    .summary-content .monthly-usage {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .summary-content .app-list li {
+        height: 30px; /* Fixed height for identical spacing */
+        align-items: center; /* Center content vertically */
+    }
+
+    /* Footer adjustments for mobile */
+    footer {
+        font-size: 12px;
+    }
+
+    footer img {
+        height: 12px;
+    }
+}
+
+/* Mobile-only elements */
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block;
+    }
+}

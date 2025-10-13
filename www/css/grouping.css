@@ -1,0 +1,246 @@
+/* --- Smart Grouping Styles --- */
+/* Related: js/grouping.js
+   Used by: Smart Grouping Feature
+   MIGRATION STATUS: PHASE 3 - Additive Migration
+*/
+
+.grouping-area {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    display: none; /* Hidden by default */
+}
+
+.grouping-area.visible {
+    display: block;
+}
+
+.pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    background-color: #e0e0e0;
+    padding: 0.2rem 0.4rem; /* Even smaller padding */
+    border-radius: 10px; /* Smaller border-radius */
+    font-size: 0.75rem; /* Even smaller font size */
+    font-weight: 500;
+}
+
+.pill .remove-btn {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #888;
+}
+
+.analytics-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.analytics-summary {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.save-group-container {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center; /* Align items vertically in the center */
+    justify-content: space-between; /* Distribute space between input/save and toggle button */
+}
+
+.save-group-container button {
+    background-color: #e0e0e0; /* Light gray background */
+    color: #333; /* Dark text */
+    border: 1px solid #ccc; /* Light border */
+    padding: 8px 16px; /* Smaller padding */
+    border-radius: 16px; /* More rounded corners */
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.save-group-container button:hover {
+    background-color: #d0d0d0; /* Slightly darker gray on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
+    transform: none; /* Remove translateY */
+}
+
+.input-and-save-btn {
+    display: flex;
+    gap: 0.5rem;
+    flex-grow: 1; /* Allow this container to grow */
+}
+
+.save-group-container input {
+    flex-grow: 1; /* Allow input to grow within its container */
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#save-group-btn {
+    background-color: #e0e0e0; /* Light gray background */
+    color: #333; /* Dark text */
+    border: 1px solid #ccc; /* Light border */
+    padding: 8px 16px; /* Smaller padding */
+    border-radius: 16px; /* More rounded corners */
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+#save-group-btn:hover {
+    background-color: #d0d0d0; /* Slightly darker gray on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
+    transform: none; /* Remove translateY */
+}
+
+#toggle-group-chart-btn {
+    background-color: #e0e0e0; /* Light gray background */
+    color: #333; /* Dark text */
+    border: 1px solid #ccc; /* Light border */
+    padding: 8px 16px; /* Smaller padding */
+    border-radius: 16px; /* More rounded corners */
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+#toggle-group-chart-btn:hover {
+    background-color: #d0d0d0; /* Slightly darker gray on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
+    transform: none; /* Remove translateY */
+}
+
+.clear-all-saved-groups-btn,
+.hide-grouping-btn {
+    background-color: #e0e0e0; /* Light gray background */
+    color: #333; /* Dark text */
+    border: 1px solid #ccc; /* Light border */
+    padding: 8px 16px; /* Smaller padding */
+    border-radius: 16px; /* More rounded corners */
+    font-weight: 500;
+    transition: all 0.3s;
+    margin-left: 5px; /* Reduced space to the left */
+}
+
+.clear-all-saved-groups-btn:hover,
+.hide-grouping-btn:hover {
+    background-color: #d0d0d0; /* Slightly darker gray on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
+    transform: none; /* Remove translateY */
+}
+
+.saved-groups-container {
+    margin-top: 1rem;
+}
+
+.saved-group-pill {
+    display: inline-block;
+    background-color: #cce5ff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+/* Mobile responsiveness for smart grouping */
+@media (max-width: 768px) {
+    .grouping-area {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .pills-container {
+        gap: 0.25rem;
+    }
+
+    .pill {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        border-radius: 8px;
+    }
+
+    .pill .remove-btn {
+        margin-left: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .analytics-container {
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .analytics-summary {
+        flex: 1;
+        text-align: left;
+    }
+
+    .chart-container {
+        flex: 0 0 auto;
+        text-align: right;
+    }
+
+    .analytics-summary {
+        font-size: 1rem;
+    }
+
+    .save-group-container {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .input-and-save-btn {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .save-group-container button,
+    #save-group-btn,
+    #toggle-group-chart-btn,
+    .clear-all-saved-groups-btn,
+    .hide-grouping-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        border-radius: 12px;
+    }
+
+    .save-group-container input {
+        padding: 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    .saved-group-pill {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Center pie chart on mobile */
+    .chart-container {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
+    .chart-container canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+
+
+}
