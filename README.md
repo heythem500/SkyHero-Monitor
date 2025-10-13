@@ -27,32 +27,34 @@ Built on a **modern Python foundation**, SkyHero v2.1 runs locally, processes da
 
 ---
 
-## 🧩 Compatibility
+## 🧩 Requirements
 
 SkyHero is designed for:
-- ASUS routers with **ASUSWRT-Merlin firmware**
-- **Entware** environment (required for Python and dependencies)
-- **Mounted USB storage** (for logs, configs, and runtime files)
-- Stable network connection
+- ASUS router with **ASUSWRT-Merlin** firmware
+- **USB drive** mounted (e.g. `/tmp/mnt/usb-name`) change **usb-name**
+- **Entware** installed and running "it's merlin realtd, use **amtm** ssh command to install it"
+- **Python components** (installed via install sh automaticaly)
+
+### Compatibility
 
 **Tested on:**
 - RT-AX58U v2  
 (Other Merlin-compatible models should also work.)
 
 ---
+### Installation
 
-### Requirements
-
-- ASUS router with **ASUSWRT-Merlin** firmware
-- - **USB drive** mounted (e.g. `/tmp/mnt/usb-name`)  
-- **Entware** installed and running  
-- **Python** (installed via install sh automaticaly)
-
-## 🌐 Installation — Online Mode (the easy way)
+## 🌐 Installation — Online (the easy way)
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/heythem500/SkyHero-Monitor/refs/heads/main/install.sh
 ```
+
+once installation completes, you'll see a success message.  
+press Enter to open the main management menu.
+
+you can access menu CLi manager anytime by typing:
+skyhero   or   skyhero2
 
 ## ⚙️ Installation — Manual Mode
 
@@ -68,7 +70,6 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
 /tmp/mnt/usb-name/skyhero-v2/install.sh
 ```
 
-
 ---
 
 ## 🖼️ Screenshots
@@ -82,8 +83,19 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   
   ---
 
+## data location and safety
+
+your data is stored inside the "data" folder on the USB drive.  
+it includes:
+
+- traffic.db → main database file that stores long-term usage records  
+- json backups → generated automatically for archive and restore
+- you have menu cli to backup , also for manual backup, simply copy the "data" folder to your computer.  
+
+---
+
 ⭐ rate my repo
 Give a ⭐ if this project deserve populrity!
 
-💖 If you find SkyHero useful and valuable to you, consider supporting me on!
+💖 If you find SkyHero useful and valuable to you, and would like to support the effort!
 [Buy Me a Coffee](https://buymeacoffee.com/heythem500)
