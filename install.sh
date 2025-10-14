@@ -138,38 +138,46 @@ fi
 # 6. Configure for Boot-time Startup
 echo "Configuring for boot-time startup..."
 STARTUP_SCRIPT="/jffs/scripts/services-start" # Common ASUSWRT-Merlin startup script
+STARTUP_COMMAND="/opt/bin/python3 $BASE_DIR/skyhero.py serve > $BASE_DIR/logs/server.log 2>&1 &"
+GREP_ID="skyhero.py serve"
 
 # Check if the startup script exists, if not, create it with a shebang and make it executable
 if [ ! -f "$STARTUP_SCRIPT" ]; then
     echo "#!/bin/ash" > "$STARTUP_SCRIPT"
     chmod +x "$STARTUP_SCRIPT"
+    echo -e "${C_GREEN}Created $STARTUP_SCRIPT.${C_RESET}"
 fi
 
-# Create a simple startup script that starts the web server
-cat > "$STARTUP_SCRIPT" << EOF
-#!/bin/ash
-# Simple services-start script for Superman-Trackingf
-
-# Start the web server using the dynamically found path
-/opt/bin/python3 $BASE_DIR/skyhero.py serve > $BASE_DIR/logs/server.log 2>&1 &
-EOF
-
-chmod +x "$STARTUP_SCRIPT"
-echo -e "${C_GREEN}Updated $STARTUP_SCRIPT with simple startup approach.${C_RESET}"
+# Add startup command if it's not already there
+if ! grep -qF "$GREP_ID" "$STARTUP_SCRIPT"; then
+    echo "" >> "$STARTUP_SCRIPT"
+    echo "# Added by Superman-Tracking v2.1 Installer" >> "$STARTUP_SCRIPT"
+    echo "$STARTUP_COMMAND" >> "$STARTUP_SCRIPT"
+    echo -e "${C_GREEN}Added startup command to $STARTUP_SCRIPT.${C_RESET}"
+else
+    echo -e "${C_YELLOW}Startup command already exists in $STARTUP_SCRIPT. Skipping.${C_RESET}"
+fi
 
 # 7. Set up auto-start mechanism for USB mount events
 echo "Setting up auto-start mechanism for USB mount events..."
-
-# Create a completely new post-mount script to avoid any conflicts
 POST_MOUNT_SCRIPT="/jffs/scripts/post-mount"
+START_MARKER="# START Superman-Tracking v2.1 auto-start"
 
-# Create temporary file with clean content
-TEMP_FILE="${POST_MOUNT_SCRIPT}.tmp"
+# Check if the post-mount script exists, if not, create it with a shebang
+if [ ! -f "$POST_MOUNT_SCRIPT" ]; then
+    echo "#!/bin/sh" > "$POST_MOUNT_SCRIPT"
+    chmod +x "$POST_MOUNT_SCRIPT"
+    echo -e "${C_GREEN}Created $POST_MOUNT_SCRIPT.${C_RESET}"
+fi
 
-# Write the header
-cat > "$TEMP_FILE" << 'EOF'
-#!/bin/sh
-. /jffs/addons/amtm/mount-entware.mod # Added by amtm
+# Add auto-start logic if it's not already there
+if ! grep -qF "$START_MARKER" "$POST_MOUNT_SCRIPT"; then
+    echo "Appending auto-start logic to $POST_MOUNT_SCRIPT..."
+    # Use cat to append the block of code
+    cat >> "$POST_MOUNT_SCRIPT" << 'EOF'
+
+# START Superman-Tracking v2.1 auto-start
+# This block was added by the Superman-Tracking installer.
 
 # Superman-Tracking auto-start
 MOUNT_PATH="$1"
@@ -218,12 +226,13 @@ if APP_PATH=$(find_superman_installation "$MOUNT_PATH"); then
 else
     echo "Superman-Tracking installation not found in $MOUNT_PATH"
 fi
+# END Superman-Tracking v2.1 auto-start
 EOF
-
-# Replace the old post-mount script with our clean version
-mv "$TEMP_FILE" "$POST_MOUNT_SCRIPT"
-chmod 755 "$POST_MOUNT_SCRIPT"
-echo -e "${C_GREEN}Created clean post-mount script with enhanced auto-start logic.${C_RESET}"
+    chmod +x "$POST_MOUNT_SCRIPT"
+    echo -e "${C_GREEN}Appended auto-start logic to $POST_MOUNT_SCRIPT.${C_RESET}"
+else
+    echo -e "${C_YELLOW}Auto-start logic already exists in $POST_MOUNT_SCRIPT. Skipping.${C_RESET}"
+fi
 
 # 8. Create Entware service script
 echo "Creating Entware service script..."
