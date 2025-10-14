@@ -96,8 +96,8 @@ your data is stored inside the "data" folder on the USB drive.
 it includes:
 
 - traffic.db → main database file that stores long-term usage records  
-- json backups → generated automatically for archive and restore
-- you have menu cli to backup , also for manual backup, simply copy the "data" folder to your computer.  
+- json files → generated automatically for archive and direct access
+- you have menu cli to backup , also for manual backup simply copy the "data" folder to your computer.  
 
 ---
 
