@@ -45,9 +45,15 @@ SkyHero is designed for:
 ### Installation
 
 ## 🌐 Installation — Online (the easy way)
-
+(remember to change USB label name.)
 ```bash
-curl -sSL https://raw.githubusercontent.com/heythem500/SkyHero-Monitor/refs/heads/main/install.sh
+cd /tmp/mnt/USB-NAME
+curl -L https://github.com/heythem500/SkyHero-Monitor/archive/main.zip -o skyhero.zip
+unzip skyhero.zip
+mv SkyHero-Monitor-main skyhero-v2 # Rename the directory to your preferred name
+rm skyhero.zip  # Clean up the ZIP file
+cd skyhero-v2
+./install.sh
 ```
 
 once installation completes, you'll see a success message.  
