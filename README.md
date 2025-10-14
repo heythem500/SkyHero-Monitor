@@ -29,7 +29,7 @@ Built on a **modern Python foundation**, SkyHero v2.1 runs locally, processes da
 
 ## 🧩 Requirements
 
-SkyHero is designed to be user friendly yet you need to have:
+SkyHero is designed to be user friendly just cosnider that you have:
 - ASUS router with **ASUSWRT-Merlin** firmware
 - JFFS custom scripts and configs Enabled from system settings
 - **USB drive** mounted (e.g. `/tmp/mnt/usb-name`) change **usb-name**
