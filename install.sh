@@ -11,66 +11,6 @@ C_YELLOW='\033[0;33m'
 C_CYAN='\033[0;36m'
 C_RESET='\033[0m'
 
-# Determine the directory where the script is located using a portable approach
-SOURCE="${0}"
-while [ -h "$SOURCE" ]; do
-    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-done
-SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
-
-# Check if all necessary files are present in the script's directory
-if [ ! -f "$SCRIPT_DIR/skyhero.py" ] || [ ! -d "$SCRIPT_DIR/system" ]; then
-    echo "Required files not found in script directory."
-    echo "This installation script requires the full repository."
-    
-    # Attempt to download the repository if curl or wget is available
-    if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
-        echo "Downloading repository to temporary location..."
-        TEMP_DIR=$(mktemp -d)
-        ORIGINAL_DIR=$(pwd)
-        SCRIPT_NAME=$(basename "$0")
-        
-        cd "$TEMP_DIR" || exit 1
-        
-        # Download the repository
-        if command -v curl >/dev/null 2>&1; then
-            echo "Using curl to download repository..."
-            curl -sL https://github.com/heythem500/SkyHero-Monitor/archive/main.tar.gz | tar -xz --strip-components=1
-        elif command -v wget >/dev/null 2>&1; then
-            echo "Using wget to download repository..."
-            wget -qO- https://github.com/heythem500/SkyHero-Monitor/archive/main.tar.gz | tar -xz --strip-components=1
-        fi
-        
-        # Verify download
-        if [ -f "./skyhero.py" ] && [ -d "./system" ]; then
-            echo "Repository downloaded successfully. Re-running installer..."
-            # Pass any arguments that were given to this script
-            ./install.sh "$@"
-            INSTALL_RESULT=$?
-            cd "$ORIGINAL_DIR" || exit 1
-            exit $INSTALL_RESULT
-        else
-            echo "Failed to download the repository properly."
-            cd "$ORIGINAL_DIR" || exit 1
-            rm -rf "$TEMP_DIR"
-            echo "Please clone the full repository first:"
-            echo "  git clone https://github.com/heythem500/SkyHero-Monitor.git"
-            echo "  cd SkyHero-Monitor"
-            echo "  ./install.sh"
-            exit 1
-        fi
-    else
-        echo "Neither curl nor wget is available to download the repository."
-        echo "Please clone the full repository first:"
-        echo "  git clone https://github.com/heythem500/SkyHero-Monitor.git"
-        echo "  cd SkyHero-Monitor"
-        echo "  ./install.sh"
-        exit 1
-    fi
-fi
-
 # --- Script Setup ---
 SOURCE="${0}"
 while [ -h "${SOURCE}" ]; do
