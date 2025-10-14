@@ -54,6 +54,7 @@ unzip skyhero.zip
 mv SkyHero-Monitor-main skyhero-v2 # Rename the directory to your preferred name
 rm skyhero.zip  # Clean up the ZIP file
 cd skyhero-v2
+chmod +x install.sh
 ./install.sh
 ```
 
