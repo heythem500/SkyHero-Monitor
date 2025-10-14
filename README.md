@@ -29,8 +29,9 @@ Built on a **modern Python foundation**, SkyHero v2.1 runs locally, processes da
 
 ## 🧩 Requirements
 
-SkyHero is designed for:
+SkyHero is designed to be user friendly yet you need to have:
 - ASUS router with **ASUSWRT-Merlin** firmware
+- JFFS custom scripts and configs Enabled from system settings
 - **USB drive** mounted (e.g. `/tmp/mnt/usb-name`) change **usb-name**
 - **Entware** installed and running "it's merlin realtd, use **amtm** ssh command to install it"
 - **Python components** (installed via install sh automaticaly)
