@@ -433,23 +433,33 @@ Press [Enter] to return to the menu..."
             echo ""
             echo "Removing startup command from services-start script..."
             STARTUP_SCRIPT="/jffs/scripts/services-start"
-            STARTUP_COMMAND="nohup /opt/bin/python3 $BASE_DIR/skyhero.py serve > $BASE_DIR/logs/server.log 2>&1 &"
+            GREP_ID="skyhero.py serve" # Use a unique part of the command to identify the line
             
             if [ -f "$STARTUP_SCRIPT" ]; then
-                # Remove the specific line containing our startup command
-                if grep -qF "$STARTUP_COMMAND" "$STARTUP_SCRIPT"; then
-                    grep -vF "$STARTUP_COMMAND" "$STARTUP_SCRIPT" > "$STARTUP_SCRIPT.tmp" && mv "$STARTUP_SCRIPT.tmp" "$STARTUP_SCRIPT"
+                if grep -qF "$GREP_ID" "$STARTUP_SCRIPT"; then
+                    # Use grep -v to filter out the line and the comment before it
+                    grep -vF "$GREP_ID" "$STARTUP_SCRIPT" | grep -vF "# Added by Superman-Tracking v2.1 Installer" > "$STARTUP_SCRIPT.tmp" && mv "$STARTUP_SCRIPT.tmp" "$STARTUP_SCRIPT"
                     echo "Startup command removed from $STARTUP_SCRIPT."
-                    
-                    # If the file is now empty except for the shebang, we might want to clean it up
-                    if [ "$(wc -l < "$STARTUP_SCRIPT")" -eq 1 ] && [ "$(head -n 1 "$STARTUP_SCRIPT")" = "#!/bin/ash" ]; then
-                        echo "services-start script is now empty except for shebang. Keeping it for system compatibility."
-                    fi
                 else
                     echo "Startup command not found in $STARTUP_SCRIPT. Nothing to remove."
                 fi
             else
                 echo "services-start script not found. Nothing to remove."
+            fi
+
+            # Remove post-mount command block
+            echo ""
+            echo "Removing auto-start logic from post-mount script..."
+            POST_MOUNT_SCRIPT="/jffs/scripts/post-mount"
+            START_MARKER="# START Superman-Tracking v2.1 auto-start"
+            END_MARKER="# END Superman-Tracking v2.1 auto-start"
+            if [ -f "$POST_MOUNT_SCRIPT" ] && grep -qF "$START_MARKER" "$POST_MOUNT_SCRIPT"; then
+                # Use sed to delete the block between the markers. Using a temp file for compatibility.
+                sed '/'"$START_MARKER"'/,/'"$END_MARKER"'/d' "$POST_MOUNT_SCRIPT" > "$POST_MOUNT_SCRIPT.tmp"
+                mv "$POST_MOUNT_SCRIPT.tmp" "$POST_MOUNT_SCRIPT"
+                echo "Auto-start logic removed from $POST_MOUNT_SCRIPT."
+            else
+                echo "Auto-start logic not found in $POST_MOUNT_SCRIPT. Nothing to remove."
             fi
 
             # Remove project files
