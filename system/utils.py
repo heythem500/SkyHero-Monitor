@@ -90,3 +90,16 @@ def get_device_name(mac):
     # This ensures we don't show fake names for real router data
     mac_suffix = mac[-5:].replace(':', '')
     return f"Device-{mac_suffix}"
+
+def get_lan_ip():
+    """Gets the router's LAN IP address from NVRAM."""
+    try:
+        # Command to get LAN IP from NVRAM, common on ASUS routers
+        result = subprocess.run(['nvram', 'get', 'lan_ipaddr'], capture_output=True, text=True, check=True)
+        lan_ip = result.stdout.strip()
+        if lan_ip:
+            return lan_ip
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # If command fails, nvram might not be available or variable is not set
+        pass
+    return None # Return None if not found
