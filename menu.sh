@@ -36,6 +36,16 @@ Verifying active cron jobs for Superman & SkyHero Monitor v2.1..."
 Verifying background server..."
     if ps w | grep "python" | grep "skyhero.py" | grep -v grep | grep -q "serve"; then
         echo -e "${C_GREEN}  -> Python web server is RUNNING.${C_RESET}"
+        
+        # Check server configuration
+        WEB_SERVER_HOST=$(grep "WEB_SERVER_HOST" "$BASE_DIR/system/config.py" | grep -o "= \".*\"" | cut -d'"' -f2)
+        if [ "$WEB_SERVER_HOST" = "lan_only" ]; then
+            echo -e "  -> Server configured for: ${C_GREEN}LAN only (secure)${C_RESET}"
+        elif [ "$WEB_SERVER_HOST" = "0.0.0.0" ]; then
+            echo -e "  -> Server configured for: ${C_YELLOW}WAN access (0.0.0.0) - SECURITY RISK!${C_RESET}"
+        else
+            echo -e "  -> Server configured for: ${C_YELLOW}Custom IP ($WEB_SERVER_HOST)${C_RESET}"
+        fi
     else
         echo -e "${C_RED}  -> Python web server is NOT RUNNING.${C_RESET}
 "
@@ -636,6 +646,17 @@ show_web_server_menu() {
                 echo "Checking Python web server status..."
                 if ps | grep 'python' | grep 'skyhero.py' | grep -v grep > /dev/null; then
                     echo -e "${C_GREEN}Python web server is RUNNING.${C_RESET}"
+                    
+                    # Check server configuration
+                    WEB_SERVER_HOST=$(grep "WEB_SERVER_HOST" "$BASE_DIR/system/config.py" | grep -o "= \".*\"" | cut -d'"' -f2)
+                    if [ "$WEB_SERVER_HOST" = "lan_only" ]; then
+                        echo -e "  -> Server configured for: ${C_GREEN}LAN only access (secure)${C_RESET}"
+                    elif [ "$WEB_SERVER_HOST" = "0.0.0.0" ]; then
+                        echo -e "  -> Server configured for: ${C_YELLOW}WAN access (0.0.0.0) - SECURITY RISK!${C_RESET}"
+                        echo -e "  -> ${C_YELLOW}WARNING: The server is accessible from the internet. Ensure you have a strong password set.${C_RESET}"
+                    else
+                        echo -e "  -> Server configured for: ${C_YELLOW}Custom IP ($WEB_SERVER_HOST)${C_RESET}"
+                    fi
                 else
                     echo -e "${C_RED}Python web server is NOT RUNNING.${C_RESET}"
                 fi
