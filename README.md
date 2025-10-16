@@ -87,7 +87,9 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img02.jpg" width="30%" height="auto">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img03.jpg" width="30%" height="auto">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img04.jpg" width="30%" height="auto">
-  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img05.jpg" width="15%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img06.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img07.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img05.jpg" width="30%" height="auto">
   </p>
   
   ---
