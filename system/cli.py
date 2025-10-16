@@ -358,7 +358,16 @@ def main():
         if command == 'serve':
             # Ensure cron jobs are set up when server starts
             ensure_cron_jobs()
-            app.run(host='0.0.0.0', port=8082)
+            # Use configured host or detect LAN IP if set to "lan_only"
+            if Config.WEB_SERVER_HOST == "lan_only":
+                from .utils import get_lan_ip
+                host_ip = get_lan_ip()
+                if not host_ip:
+                    print("Warning: Could not detect LAN IP. Using 127.0.0.1 as fallback.")
+                    host_ip = "127.0.0.1"
+            else:
+                host_ip = Config.WEB_SERVER_HOST
+            app.run(host=host_ip, port=8082)
         elif command == 'rollup':
             day = sys.argv[3] if len(sys.argv) > 3 else 'today'
             if day == 'today':
