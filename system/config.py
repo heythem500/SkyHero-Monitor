@@ -74,6 +74,11 @@ class Config:
     else:
         LIVE_DB_PATH = LOCAL_DB_PATH
         
+    # --- Web Server Host Configuration ---
+    # "lan_only": (Recommended) Automatically detects the router's LAN IP. The dashboard will only be accessible from your local network.
+    # "0.0.0.0": (UNSAFE) Listens on all network interfaces. This can expose the dashboard to the public internet (WAN). Use with caution and a strong password.
+    WEB_SERVER_HOST = "lan_only"
+
     PASSWORD_FILE = os.path.join(DATA_DIR, '.password')
 
     # Quota configuration - flexible period-based quotas
