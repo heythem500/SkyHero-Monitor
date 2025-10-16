@@ -90,6 +90,7 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img06.jpg" width="30%" height="auto">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img07.jpg" width="30%" height="auto">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img05.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img08.jpg" width="30%" height="auto">
   </p>
   
   ---
