@@ -29,7 +29,7 @@ mkdir -p "$BASE_DIR/logs"
 # --- Helper Functions ---
 verify_installation() {
     echo "
-Verifying active cron jobs for Superman & SkyHero Monitor v2.1..."
+Verifying active cron jobs for SkyHero Monitor v2.1..."
     cru l | grep "skyhero_monitor\\|skyhero_backup" || echo "No v2.1 cron jobs found."
     
     echo "
