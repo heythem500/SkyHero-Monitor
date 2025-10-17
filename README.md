@@ -94,6 +94,24 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   </p>
   
   ---
+  
+## Options & Customization
+
+## Options & Customization
+
+1. **Server Binding (LAN/WAN):**  
+   By default, the web dashboard runs on the LAN interface only.  
+   Change it in `config.py`: `WEB_SERVER_HOST = "lan_only"` or `"0.0.0.0"`.
+
+2. **Port Configuration:**  
+   Default port is `8082`.  
+   Change it in `config.py` if needed.
+
+3. **Password Protection:**  
+   Password is **disabled by default** (Password Status: DISABLED).  
+   To enable or change the password, use the menu: by running `skyhero` and select **10) Security Options → Set/Change Password**.
+
+---
 
 ## data location and safety
 
