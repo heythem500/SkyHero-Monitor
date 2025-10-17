@@ -8,7 +8,7 @@ This project is an example of collaboration between a human and AI — a small e
 
 ⭐ Give this project a star if you think it deserves some popularity!
 
-💖 If you find SkyHero useful and valuable to you, and would like to support the effort!
+💖 If you find SkyHero useful and want to support the effort!
 [Buy Me a Coffee](https://buymeacoffee.com/heythem500)
 
 # About 
