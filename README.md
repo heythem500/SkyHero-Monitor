@@ -6,6 +6,11 @@ This project is an example of collaboration between a human and AI — a small e
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img01.jpg">
   </p>
 
+⭐ Give this project a star if you think it deserves some popularity!
+
+💖 If you find SkyHero useful and valuable to you, and would like to support the effort!
+[Buy Me a Coffee](https://buymeacoffee.com/heythem500)
+
 # About 
 
 SkyHero is a lightweight analytics suite built for **ASUS routers running ASUSWRT-Merlin firmware**.  
@@ -120,9 +125,4 @@ it includes:
 - json files → generated automatically for archive and direct access
 - you have menu cli to backup , also for manual backup simply copy the "data" folder to your computer.  
 
----
 
-⭐ Give this project a star if you think it deserves some popularity!
-
-💖 If you find SkyHero useful and valuable to you, and would like to support the effort!
-[Buy Me a Coffee](https://buymeacoffee.com/heythem500)
