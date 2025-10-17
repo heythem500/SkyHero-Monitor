@@ -122,8 +122,7 @@ it includes:
 
 ---
 
-⭐ rate my repo
-Give a ⭐ if this project deserve populrity!
+⭐ Give this project a star if you think it deserves some popularity!
 
 💖 If you find SkyHero useful and valuable to you, and would like to support the effort!
 [Buy Me a Coffee](https://buymeacoffee.com/heythem500)
