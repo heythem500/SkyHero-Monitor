@@ -97,8 +97,6 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   
 ## Options & Customization
 
-## Options & Customization
-
 1. **Server Binding (LAN/WAN):**  
    By default, the web dashboard runs on the LAN interface only.  
    Change it in `config.py`: `WEB_SERVER_HOST = "lan_only"` or `"0.0.0.0"`.
