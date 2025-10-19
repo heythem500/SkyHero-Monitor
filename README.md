@@ -25,7 +25,9 @@ Built on a **modern Python foundation**, SkyHero v2.1 runs locally, processes da
 
 - Real-time bandwidth tracking  
 - Daily, weekly, and monthly usage reports  
-- Per-device analytics and quota alerts  
+- Per-device analytics and quota alerts
+- Per-device summary screenshots with charts and key stats
+- Smart groups to combine and compare multiple devices
 - Lightweight web interface with responsive design  
 - Zero cloud reliance — all data stays on your router  
 - Simple installation and maintenance
