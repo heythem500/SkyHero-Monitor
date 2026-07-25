@@ -33,6 +33,34 @@
     font-weight: 500;
 }
 
+.pill.inactive {
+    background-color: #9e9e9e;
+    color: #424242;
+    position: relative;
+}
+
+.pill.inactive::after {
+    content: "no traffic";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.pill.inactive:hover::after {
+    opacity: 1;
+}
+
 .pill .remove-btn {
     margin-left: 0.5rem;
     cursor: pointer;
@@ -76,6 +104,15 @@
     background-color: #d0d0d0; /* Slightly darker gray on hover */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
     transform: none; /* Remove translateY */
+}
+
+@keyframes buttonSuccessFlash {
+    0% { background-color: #4caf50; color: white; }
+    100% { background-color: #e0e0e0; color: #333; }
+}
+
+.save-group-container button.success-flash {
+    animation: buttonSuccessFlash 1.5s ease;
 }
 
 .input-and-save-btn {
