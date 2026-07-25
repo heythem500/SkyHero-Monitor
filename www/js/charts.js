@@ -9,6 +9,7 @@
 
 import { formatBytes } from './utils.js';
 import { translate } from './i18n.js';
+import { privateDisplayName } from './settings_privatemode.js';
 
 /**
  * Render all charts for the dashboard
@@ -109,10 +110,11 @@ function renderCharts(barData, pieData, topAppsData) {
 
     // Pie chart
     if (window.pieChart) window.pieChart.destroy();
+    window.lastPieData = pieData;
     window.pieChart = new Chart(document.getElementById('devicePieChart').getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: pieData.map(d => d.name),
+            labels: pieData.map(d => privateDisplayName(d.name, d.mac)),
             datasets: [{
                 data: pieData.map(d => d.total_bytes / 1073741824), // Convert bytes to GB for chart
                 backgroundColor: pieColors,

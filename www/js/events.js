@@ -16,9 +16,13 @@ import {
     closeHistoryModal,
     viewRestoreHistory
 } from './modals.js';
-import { saveGroup, setEditMode, resetGroupingUI, toggleGroupChart, handleSelectionChange, updateGroupingUI, syncCheckboxes, renderSavedGroups, getSavedGroups, setSavedGroups, handleSelectAllDevices, getSelectedDevices, updateSelectedDevicesWithNewData, selectedDevices, setSelectedDevices } from './grouping.js';
+import { saveGroup, setEditMode, resetGroupingUI, toggleGroupChart, handleSelectionChange, updateGroupingUI, syncCheckboxes, renderSavedGroups, getSavedGroups, setSavedGroups, handleSelectAllDevices, getSelectedDevices, updateSelectedDevicesWithNewData, selectedDevices, setSelectedDevices, getCurrentEditingGroup } from './grouping.js';
+import { toggleNotesPanel, initNotes } from './notes.js';
+import { initNotifications, openNotificationsModal } from './notifications.js';
+import { initSettings, openSettingsModal } from './settings.js';
 import {
     applyFilter,
+    applyMultiMonthFilter,
     loadMonthData,
     updateMonthNavigator,
     sortTable,
@@ -28,8 +32,13 @@ import {
     getAvailableMonths as mainGetAvailableMonths,
     getCurrentMonthIndex as mainGetCurrentMonthIndex,
     setCurrentMonthIndex as mainSetCurrentIndex,
-    getCurrentSort as mainGetCurrentSort
-} from './main.js'; // These functions will need to be exported from main.js
+    getCurrentSort as mainGetCurrentSort,
+    clearMultiMonthSelection,
+    renderSelectedMonthsPills,
+    updateSelectMonthsBadge,
+    getSelectedMonths,
+    setSelectedMonths
+} from './main.js';
 import { fetchData, pollForReport } from './api.js';
 import { renderCharts, renderTopAppsChart } from './charts.js';
 import { renderTable, renderDeviceCards } from './components.js';
@@ -79,28 +88,132 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
         applyBillingFilterBtn.addEventListener('click', handleBillingFilterClick);
     }
 
-    // Quick filter buttons
-    document.querySelectorAll('.quick-filters > button').forEach(button => {
+    // Quick filter buttons — clear multi-month selection when switching to a quick filter
+    document.querySelectorAll('.quick-filters > .quick-filter-button-item').forEach(button => {
         button.addEventListener('click', () => {
+            clearMultiMonthSelection();
             applyFilter(button.dataset.filterType);
         });
     });
 
-    // Month navigator
-    const nextMonthBtn = document.getElementById('next-month');
-    const prevMonthBtn = document.getElementById('prev-month');
-    const currentMonthDisplay = document.getElementById('current-month-display');
-    
-    if (nextMonthBtn) {
-        nextMonthBtn.addEventListener('click', handleNextMonthClick);
+    // "Clear All" button on the pills bar — reset to current month
+    const clearPillsBtn = document.getElementById('clear-pills-btn');
+    if (clearPillsBtn) {
+        clearPillsBtn.addEventListener('click', () => {
+            // Reset to default (most recent) month
+            if (mainGetAvailableMonths().length > 0) {
+                setSelectedMonths([mainGetAvailableMonths()[0]]);
+                mainSetCurrentIndex(0);
+                updateSelectMonthsBadge();
+                // Hide pills bar
+                const bar = document.getElementById('selected-months-bar');
+                if (bar) bar.style.display = 'none';
+                loadMonthData();
+            } else {
+                clearMultiMonthSelection();
+                applyFilter('this_month');
+            }
+        });
     }
-    
-    if (prevMonthBtn) {
-        prevMonthBtn.addEventListener('click', handlePrevMonthClick);
+
+    // ── Multi-Month Picker Event Listeners ──
+
+    // "Select Months" button — load current month then toggle picker panel
+    const selectMonthsBtn = document.getElementById('select-months-btn');
+    const monthPickerPanel = document.getElementById('month-picker-panel');
+    if (selectMonthsBtn && monthPickerPanel) {
+        selectMonthsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = monthPickerPanel.style.display !== 'none';
+            if (isVisible) {
+                monthPickerPanel.style.display = 'none';
+            } else {
+                // If multi-month pills are visible, just open picker (don't reset)
+                const bar = document.getElementById('selected-months-bar');
+                const hasPills = bar && bar.style.display !== 'none' && getSelectedMonths().length > 1;
+                if (!hasPills && mainGetAvailableMonths().length > 0) {
+                    // Single month view — reset to current month and load it
+                    setSelectedMonths([mainGetAvailableMonths()[0]]);
+                    mainSetCurrentIndex(0);
+                    updateSelectMonthsBadge();
+                    if (bar) bar.style.display = 'none';
+                    loadMonthData();
+                }
+                renderMonthPickerCheckboxes();
+                monthPickerPanel.style.display = 'block';
+            }
+        });
+
+        // Close picker when clicking outside
+        document.addEventListener('click', (e) => {
+            const isVisible = monthPickerPanel.style.display !== 'none';
+            if (isVisible && !monthPickerPanel.contains(e.target) && e.target !== selectMonthsBtn) {
+                monthPickerPanel.style.display = 'none';
+            }
+        });
     }
-    
-    if (currentMonthDisplay) {
-        currentMonthDisplay.addEventListener('click', handleMonthDisplayClick);
+
+    // "Select All" — check every month checkbox
+    const selectAllBtn = document.getElementById('picker-select-all-btn');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            setSelectedMonths([...mainGetAvailableMonths()]);
+            renderMonthPickerCheckboxes();
+            updateSelectMonthsBadge();
+        });
+    }
+
+    // "Clear All" — uncheck every month checkbox, hide pills, close picker, and reload default month
+    const clearAllBtn = document.getElementById('picker-clear-all-btn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            setSelectedMonths([]);
+            renderMonthPickerCheckboxes();
+            updateSelectMonthsBadge();
+            // Hide pills bar
+            const bar = document.getElementById('selected-months-bar');
+            if (bar) bar.style.display = 'none';
+            // Close the picker panel
+            monthPickerPanel.style.display = 'none';
+            // Reload the default month data so quota card reappears
+            if (mainGetAvailableMonths().length > 0) {
+                setSelectedMonths([mainGetAvailableMonths()[0]]);
+                mainSetCurrentIndex(0);
+                updateSelectMonthsBadge();
+                loadMonthData();
+            } else {
+                applyFilter('this_month');
+            }
+        });
+    }
+
+    // "Cancel" — close picker without applying changes
+    const cancelBtn = document.getElementById('picker-cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            monthPickerPanel.style.display = 'none';
+        });
+    }
+
+    // "Apply Selected" — close picker and load data for selected months
+    const applyBtn = document.getElementById('picker-apply-btn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            monthPickerPanel.style.display = 'none';
+            const months = getSelectedMonths();
+            
+            if (months.length === 0) {
+                applyFilter('this_month');
+            } else if (months.length === 1) {
+                const monthIndex = mainGetAvailableMonths().indexOf(months[0]);
+                if (monthIndex === -1) monthIndex = 0;
+                mainSetCurrentIndex(monthIndex);
+                updateMonthNavigator();
+                loadMonthData();
+            } else {
+                applyMultiMonthFilter(months);
+            }
+        });
     }
 
     // Smart Grouping Event Listeners
@@ -124,6 +237,40 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
         cancelUpdateBtn.addEventListener('click', () => {
             setEditMode(false);
             resetGroupingUI();
+        });
+    }
+
+    const deleteGroupBtn = document.getElementById('delete-group-btn');
+    if (deleteGroupBtn) {
+        deleteGroupBtn.addEventListener('click', async () => {
+            const currentGroup = getCurrentEditingGroup();
+            if (!currentGroup) return;
+            
+            if (!confirm(`Delete "${currentGroup.name}"?`)) return;
+            
+            try {
+                const response = await fetch('/delete_group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: currentGroup.name })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    const savedGroups = getSavedGroups();
+                    const indexToDelete = savedGroups.findIndex(g => g.name === currentGroup.name);
+                    if (indexToDelete !== -1) {
+                        savedGroups.splice(indexToDelete, 1);
+                        setSavedGroups(savedGroups);
+                    }
+                    setEditMode(false);
+                    resetGroupingUI();
+                    renderSavedGroups();
+                } else {
+                    alert('Failed to delete group: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error deleting group: ' + error.message);
+            }
         });
     }
 
@@ -157,6 +304,39 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
 
     // Render saved groups on page load
     renderSavedGroups();
+
+    // Notes panel event listeners
+    const notesToggleBtn = document.getElementById('notes-toggle-btn');
+    const notesCloseBtn = document.getElementById('notes-close-btn');
+
+    if (notesToggleBtn) {
+        notesToggleBtn.addEventListener('click', toggleNotesPanel);
+    }
+
+    if (notesCloseBtn) {
+        notesCloseBtn.addEventListener('click', toggleNotesPanel);
+    }
+
+    // Initialize notes module
+    initNotes();
+
+    // Notifications button
+    const notificationsToggleBtn = document.getElementById('notifications-toggle-btn');
+    if (notificationsToggleBtn) {
+        notificationsToggleBtn.addEventListener('click', openNotificationsModal);
+    }
+
+    // Initialize notifications module
+    initNotifications();
+
+    // Settings button
+    const settingsToggleBtn = document.getElementById('settings-toggle-btn');
+    if (settingsToggleBtn) {
+        settingsToggleBtn.addEventListener('click', openSettingsModal);
+    }
+
+    // Initialize settings module
+    initSettings();
 
     // Add click event listener to the bar chart
     const dailyBarChartCanvas = document.getElementById('dailyBarChart');
@@ -295,9 +475,72 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
     });
 }
 
-// --- Event Handler Functions ---
+// ── Month Picker Rendering ──
 
-// Track ongoing requests and prevent duplicate clicks
+/**
+ * Render the month checkboxes in the picker panel.
+ * Reads available months from main.js and selected months from the shared array.
+ */
+function renderMonthPickerCheckboxes() {
+    const monthList = document.getElementById('month-list');
+    if (!monthList) return;
+
+    const months = mainGetAvailableMonths();
+
+    monthList.innerHTML = '';
+    months.forEach(monthId => {
+        const [year, month] = monthId.split('-');
+        const monthName = monthNames[parseInt(month) - 1];
+        // Always read the CURRENT selected months — not a stale closure reference
+        const selected = getSelectedMonths();
+        const isChecked = selected.includes(monthId);
+
+        const label = document.createElement('label');
+        label.className = `month-checkbox${isChecked ? ' checked' : ''}`;
+        label.dataset.month = monthId;
+        label.innerHTML = `
+            <input type="checkbox" value="${monthId}" ${isChecked ? 'checked' : ''}>
+            <span class="checkmark"></span>
+            <span class="month-label">${monthName} <small>${year}</small></span>
+        `;
+
+        const checkbox = label.querySelector('input');
+        // Use the 'change' event — fires after the native checkbox toggle,
+        // avoiding race conditions with label-click behavior.
+        checkbox.addEventListener('change', function() {
+            const mid = label.dataset.month;
+            // Always get the CURRENT array — not a stale reference from closure
+            let selected = getSelectedMonths();
+            
+            if (this.checked && !selected.includes(mid)) {
+                // Create new array to avoid stale reference issues
+                selected = [...selected, mid];
+                setSelectedMonths(selected);
+            } else if (!this.checked) {
+                // Create new array to avoid stale reference issues
+                const idx = selected.indexOf(mid);
+                if (idx !== -1) {
+                    selected = selected.filter((_, i) => i !== idx);
+                    setSelectedMonths(selected);
+                }
+            }
+            
+            label.classList.toggle('checked', this.checked);
+            updateSelectMonthsBadge();
+        });
+
+        monthList.appendChild(label);
+    });
+}
+
+// Month names array (mirrors main.js for display in picker)
+const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
+// ── Event Handler Functions ──
+
+// Track ongoing billing requests and prevent duplicate clicks
 const ongoingBillingRequests = new Set();
 let isBillingRequestInProgress = false;
 
@@ -382,49 +625,6 @@ async function handleBillingFilterClick() {
 }
 
 /**
- * Handle click on the next month button
- */
-function handleNextMonthClick() {
-    // Left arrow moves to an older month
-    const currentMonthIndex = mainGetCurrentMonthIndex();
-    const availableMonths = mainGetAvailableMonths();
-
-    if (currentMonthIndex < availableMonths.length - 1) {
-        mainSetCurrentIndex(currentMonthIndex + 1);
-        updateMonthNavigator();
-        loadMonthData();
-    }
-}
-
-/**
- * Handle click on the previous month button
- */
-function handlePrevMonthClick() {
-    // Right arrow moves to a newer month
-    const currentMonthIndex = mainGetCurrentMonthIndex();
-    const availableMonths = mainGetAvailableMonths();
-
-    if (currentMonthIndex > 0) {
-        mainSetCurrentIndex(currentMonthIndex - 1);
-        updateMonthNavigator();
-        loadMonthData();
-    }
-}
-
-/**
- * Handle click on the current month display
- */
-function handleMonthDisplayClick(event) {
-    loadMonthData();
-    // Add click feedback
-    const target = event.currentTarget;
-    target.classList.add('month-display-clicked');
-    setTimeout(() => {
-        target.classList.remove('month-display-clicked');
-    }, 200); // Remove class after 200ms
-}
-
-/**
  * Handle keydown on the group name input
  */
 function handleGroupNameInputKeydown(event) {
@@ -447,14 +647,60 @@ async function handleSavedGroupsContainerClick(e) {
         const savedGroups = getSavedGroups();
         const group = savedGroups[index];
         const groupMacs = group.devices;
-        // Match MACs with current devices to get full device objects
-        setSelectedDevices(currentDevices.filter(device => groupMacs.includes(device.mac)));
-        if (selectedDevices.length === 0) {
-            alert('No matching devices found for this group. The devices may have changed.');
+        
+        // First pass: add devices from current period
+        const selected = [];
+        const missingMacs = [];
+        
+        groupMacs.forEach(mac => {
+            const device = currentDevices.find(d => d.mac === mac);
+            if (device) {
+                selected.push(device);
+            } else {
+                missingMacs.push(mac);
+            }
+        });
+        
+        // For devices not in current period, try to get their names from All-Time
+        if (missingMacs.length > 0) {
+            try {
+                const response = await fetch('/data/period_data/traffic_period_all-time.json');
+                const allTimeData = await response.json();
+                const nameMap = {};
+                if (allTimeData && allTimeData.devices) {
+                    allTimeData.devices.forEach(d => {
+                        nameMap[d.mac] = d.name || d.mac;
+                    });
+                }
+                missingMacs.forEach(mac => {
+                    selected.push({
+                        mac: mac,
+                        name: nameMap[mac] || mac,
+                        total_bytes: 0,
+                        dl_bytes: 0,
+                        ul_bytes: 0,
+                        percentage: 0
+                    });
+                });
+            } catch (error) {
+                // Fallback: use MAC as name
+                missingMacs.forEach(mac => {
+                    selected.push({
+                        mac: mac,
+                        name: mac,
+                        total_bytes: 0,
+                        dl_bytes: 0,
+                        ul_bytes: 0,
+                        percentage: 0
+                    });
+                });
+            }
         }
+        
+        setSelectedDevices(selected);
         updateGroupingUI(currentDevices);
         syncCheckboxes();
-        setEditMode(true, group.name); // Enter edit mode
+        setEditMode(true, group.name);
     } else if (e.target.classList.contains('remove-saved-group-btn')) {
         const indexToRemove = parseInt(e.target.dataset.index);
         const savedGroups = getSavedGroups();
@@ -478,8 +724,10 @@ async function handleSavedGroupsContainerClick(e) {
         }
     } else if (e.target.classList.contains('clear-all-saved-groups-btn')) {
         // Clear all groups
+        const savedGroups = getSavedGroups();
+        if (!confirm(`Delete all ${savedGroups.length} saved groups?`)) return;
+        
         try {
-            const savedGroups = getSavedGroups();
             for (const group of savedGroups) {
                 await fetch('/delete_group', {
                     method: 'POST',

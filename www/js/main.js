@@ -16,6 +16,7 @@ function bytes_to_gb(bytes) {
 import { formatBytes } from './utils.js';
 import { fetchData, pollForReport } from './api.js';
 import { translate, applyTranslations } from './i18n.js';
+import { signalContentReady } from './settings.js';
 import { renderTable, renderDeviceCards, initializeTooltips } from './components.js';
 import {
     showDeviceCardModal,
@@ -46,15 +47,19 @@ import {
 import { attachEventListeners, updateCurrentDevices, updateSavedGroups } from './events.js'; // Import the new events module
 
 // Export functions needed by events.js
-export { 
-    applyFilter, 
-    loadMonthData, 
-    updateMonthNavigator, 
-    sortTable, 
+export {
+    applyFilter,
+    applyMultiMonthFilter,
+    loadMonthData,
+    updateMonthNavigator,
+    sortTable,
     filterContent,
     showLoader,
     updateMainStats,
-    initMonthNavigator
+    initMonthNavigator,
+    clearMultiMonthSelection,
+    renderSelectedMonthsPills,
+    updateSelectMonthsBadge
 };
 
 // Export getter and setter functions for month navigator variables
@@ -70,41 +75,58 @@ export function setCurrentMonthIndex(index) {
     currentMonthIndex = index;
 }
 
+// ── Multi-Month Filter: getters/setters for selectedMonths ──
+export function getSelectedMonths() {
+    return selectedMonths;
+}
+
+export function setSelectedMonths(months) {
+    selectedMonths = months;
+}
+
 // Export getter function for currentSort
 export function getCurrentSort() {
     return currentSort;
 }
 
+// ── Global Variables ──
+let currentDevices = [];
+let currentSort = { column: 4, ascending: false };
+let availableMonths = [];
+let currentMonthIndex = -1;
+let sevenDayDataGlobal = null;
+let currentDisplayStartDate = '';
+let currentDisplayEndDate = '';
+let routerTodayFormatted = '';
+let currentFilterType;
+let currentStats;
+let savedGroups = [];
+let selectedMonths = [];
+
+// Expose applyFilter globally for settings.js
+window.applyFilter = applyFilter;
+
 /**
- * Initialize router date from all-time data
+ * Initialize router date from last-7-days data
+ * (Last 7 Days is regenerated every 5 min and never skipped,
+ * so its last label is always the router's current date.
+ * This replaced the All-Time dependency after Fix (1) caused
+ * stale-date issues when All-Time was smart-skipped.)
  */
 async function initializeRouterDate() {
-    const allTimeData = await fetchData('traffic_period_all-time.json');
-    if (allTimeData && allTimeData.barChart && allTimeData.barChart.labels && allTimeData.barChart.labels.length > 0) {
-        routerTodayFormatted = allTimeData.barChart.labels[allTimeData.barChart.labels.length - 1];
+    const sevenDayData = await fetchData('traffic_period_last-7-days.json');
+    if (sevenDayData && sevenDayData.barChart && sevenDayData.barChart.labels && sevenDayData.barChart.labels.length > 0) {
+        routerTodayFormatted = sevenDayData.barChart.labels[sevenDayData.barChart.labels.length - 1];
     } else {
-        // Fallback to client date if all_time_data.json is not available or empty
+        // Fallback to client date if last-7-days data is not available or empty
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         routerTodayFormatted = `${yyyy}-${mm}-${dd}`;
-        console.warn("Could not determine router's date from all_time_data.json. Falling back to client date.");
+        console.warn("Could not determine router's date from last-7-days report. Falling back to client date.");
     }
 }
-
-// Global variables
-let currentDevices = [];
-let currentSort = { column: 4, ascending: false }; // Default sort is now Total (new index)
-let availableMonths = [];
-let currentMonthIndex = -1;
-let sevenDayDataGlobal = null; // New global variable for sevenDayData
-let currentDisplayStartDate = ''; // New global variable
-let currentDisplayEndDate = '';   // New global variable
-let routerTodayFormatted = ''; // Global variable to store router's current date
-let currentFilterType; // Global variable to store current filter type
-let currentStats; // Global variable to store current stats for quota updates
-let savedGroups = [];
 
 /**
  * Check restore status and show warning if needed
@@ -141,8 +163,9 @@ function updateQuotaDisplay(stats_bytes, filterType) {
         return; // Exit if the card element doesn't exist
     }
 
-    // If filter is 'all_time', hide the entire card.
-    if (filterType === 'all_time') {
+    // If filter is 'all_time' or 'multi_month', hide the entire card
+    // Multi-month spans different quota types across different periods — no meaningful combined quota
+    if (filterType === 'all_time' || filterType === 'multi_month') {
         quotaCard.style.display = 'none';
         return;
     }
@@ -322,46 +345,182 @@ function sortTable(col, toggle = true) {
 }
 
 /**
- * Initialize month navigator
+ * Initialize the multi-month filter UI and load default month data.
+ * Replaces the old month navigator (‹ Oct ›) with a "Select Months" picker.
+ * Preserves the original default behavior: loads the most recent month on startup.
  */
 async function initMonthNavigator() {
-    console.log("initMonthNavigator called.");
+    console.log("initMonthNavigator called (multi-month version).");
     try {
         const response = await fetch('/get_available_months');
         availableMonths = await response.json();
         console.log("Available months fetched:", availableMonths);
 
         if (availableMonths.length > 0) {
-            // Sort months in descending order (most recent first)
+            // Sort months descending (most recent first) — same as before
             availableMonths.sort((a, b) => b.localeCompare(a));
-            currentMonthIndex = 0; // Start with the most recent month
-            const monthNavigator = document.getElementById('month-navigator');
-            if (monthNavigator) {
-                monthNavigator.style.display = 'flex';
-                console.log("Month navigator display set to flex.");
-            } else {
-                console.error("Month navigator element not found!");
+
+            // Check for stored default filter preference
+            const validFilters = ['this_month', 'today', 'yesterday', 'last_7_days', 'all_time'];
+            let defaultFilter = null;
+            try {
+                const raw = localStorage.getItem('settings');
+                if (raw) {
+                    const settings = JSON.parse(raw);
+                    const profile = window.innerWidth < 768 ? 'mobile' : 'desktop';
+                    const stored = settings[profile]?.defaultFilter;
+                    if (stored && validFilters.includes(stored)) {
+                        defaultFilter = stored;
+                    }
+                }
+            } catch (e) { /* ignore corrupt data */ }
+
+            if (defaultFilter && defaultFilter !== 'this_month') {
+                applyFilter(defaultFilter);
+                return;
             }
-            updateMonthNavigator();
-            loadMonthData(); // Load data for the initial month
+
+            // Default: select only the most recent month (matches old single-month behavior)
+            selectedMonths = [availableMonths[0]];
+            currentMonthIndex = 0;
+
+            // Update the "Select Months" button badge
+            updateSelectMonthsBadge();
+
+            // Load data for the default month — identical to old behavior
+            loadMonthData();
         } else {
-            const monthNavigator = document.getElementById('month-navigator');
-            if (monthNavigator) {
-                monthNavigator.style.display = 'none';
-                console.log("No available months, month navigator hidden.");
-            }
-            // If no monthly data, default to 'this_month' quick filter
+            // No monthly data available — fallback to current month
+            console.log("No available months, falling back to 'this_month'.");
             applyFilter('this_month');
         }
     } catch (error) {
         console.error('Error fetching available months:', error);
-        const monthNavigator = document.getElementById('month-navigator');
-        if (monthNavigator) {
-            monthNavigator.style.display = 'none';
-        }
-        // Fallback to 'this_month' quick filter if fetching fails
+        // Fallback to 'this_month' if fetching fails
         applyFilter('this_month');
     }
+}
+
+/**
+ * Update the "Select Months" button text and badge.
+ * - 0 months: show "Current Month" (nothing selected → default state)
+ * - 1 month = most recent available: show "Current Month"
+ * - 1 month ≠ most recent: show that month's name (user manually picked a past month)
+ * - 2+ months: show "Select Months" text + badge count
+ */
+function updateSelectMonthsBadge() {
+    const btn = document.getElementById('select-months-btn');
+    const badge = document.getElementById('select-months-badge');
+    if (!btn || !badge) return;
+
+    const count = selectedMonths.length;
+    const countSpan = btn.querySelector('.select-months-badge');
+
+    if (count === 0 || (count === 1 && availableMonths.length > 0 && selectedMonths[0] === availableMonths[0])) {
+        // Default state — show "Current Month"
+        btn.childNodes[0].textContent = translate('Current Month') + ' ';
+        if (countSpan) countSpan.style.display = 'none';
+    } else if (count === 1) {
+        // User picked a different month — show its name
+        const [y, m] = selectedMonths[0].split('-');
+        const monthName = translate(monthNames[parseInt(m) - 1]);
+        btn.childNodes[0].textContent = `${monthName} ${y} `;
+        if (countSpan) countSpan.style.display = 'none';
+    } else {
+        // Multiple months
+        btn.childNodes[0].textContent = translate('Select Months') + ' ';
+        if (countSpan) {
+            countSpan.style.display = 'inline-flex';
+            countSpan.textContent = count;
+        }
+    }
+}
+
+/**
+ * Render the selected months as removable pills in the pills bar.
+ * Only shows when 2+ months are selected.
+ *
+ * @param {Object} [overrideDevices] - Optional devices array to use for GB calculation.
+ *   Used by applyMultiMonthFilter to pass freshly merged data instead of stale window.currentDevices.
+ */
+function renderSelectedMonthsPills(overrideDevices) {
+    const bar = document.getElementById('selected-months-bar');
+    const pillsContainer = document.getElementById('selected-months-pills');
+    const summary = document.getElementById('selected-months-summary');
+    const quotaCard = document.querySelector('.quota-card');
+
+    if (!bar || !pillsContainer || !summary) return;
+
+    // Only show pills bar for multi-month (2+ months)
+    if (selectedMonths.length < 2) {
+        bar.style.display = 'none';
+        return;
+    }
+
+    // Show the bar
+    bar.style.display = 'flex';
+    pillsContainer.innerHTML = '';
+
+    // Create a pill for each selected month
+    selectedMonths.forEach(monthId => {
+        const [y, m] = monthId.split('-');
+        const monthName = translate(monthNames[parseInt(m) - 1]);
+        const pill = document.createElement('span');
+        pill.className = 'month-pill';
+        pill.dataset.month = monthId;
+        pill.innerHTML = `${monthName} ${y} <span class="pill-remove" data-remove="${monthId}">&times;</span>`;
+        pillsContainer.appendChild(pill);
+    });
+
+    // Attach remove handlers to all pill × buttons
+    pillsContainer.querySelectorAll('.pill-remove').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const removeId = this.dataset.remove;
+            selectedMonths = selectedMonths.filter(id => id !== removeId);
+            if (selectedMonths.length === 0) {
+                // No months left — fallback to current month
+                bar.style.display = 'none';
+                applyFilter('this_month');
+            } else if (selectedMonths.length === 1) {
+                // Single month — hide pills bar, reload as single month
+                bar.style.display = 'none';
+                updateSelectMonthsBadge();
+                loadMonthData();
+            } else {
+                // Multiple months — reapply merged view
+                updateSelectMonthsBadge();
+                applyMultiMonthFilter(selectedMonths);
+            }
+        });
+    });
+
+    // Update summary text: "2 months · 412.8 GB"
+    // Use overrideDevices if provided (fresh data), otherwise fall back to window.currentDevices
+    const devices = overrideDevices || window.currentDevices || [];
+    const combinedTotal = devices.reduce((s, d) => s + (d.total_bytes || 0), 0);
+    const combinedGB = combinedTotal / 1073741824;
+
+    const template = translate('{N} month(s) · {GB} GB') || '{N} month(s) · {GB} GB';
+    summary.textContent = template
+        .replace('{N}', selectedMonths.length)
+        .replace('{GB}', combinedGB.toFixed(1));
+
+    // Hide quota card for multi-month
+    if (quotaCard) {
+        quotaCard.style.display = 'none';
+    }
+}
+
+/**
+ * Clear multi-month selection and hide the pills bar.
+ * Called when the user clicks any other quick filter (Today, Yesterday, etc.).
+ */
+function clearMultiMonthSelection() {
+    selectedMonths = [];
+    const bar = document.getElementById('selected-months-bar');
+    if (bar) bar.style.display = 'none';
+    updateSelectMonthsBadge();
 }
 
 // Month names array
@@ -370,36 +529,38 @@ const monthNames = ["January", "February", "March", "April", "May", "June",
 ];
 
 /**
- * Update month navigator display
+ * Update month navigator display.
+ * NOTE: The old month navigator DOM elements (arrows, display) have been replaced
+ * by the new multi-month picker UI. This function is kept for backward compatibility
+ * with loadMonthData() and the Apply handler — it now safely does nothing.
  */
 function updateMonthNavigator() {
     if (currentMonthIndex === -1) return;
-
-    const [year, month] = availableMonths[currentMonthIndex].split('-');
-    const monthName = translate(monthNames[parseInt(month) - 1]); // Get translated month name
-
-    document.getElementById('current-month-display').textContent = `${monthName} ${year}`;
-    document.getElementById('next-month').disabled = (currentMonthIndex === availableMonths.length - 1);
-    document.getElementById('prev-month').disabled = (currentMonthIndex === 0);
+    // Old DOM elements removed — function retained as no-op for compatibility
 }
 
 /**
- * Load data for the currently selected month
+ * Load data for the currently selected single month.
+ * Used on page load and when user has only 1 month selected.
  */
 function loadMonthData() {
     if (currentMonthIndex === -1) return;
-    console.log("loadMonthData called. currentMonthIndex:", currentMonthIndex);
-    const monthId = availableMonths[currentMonthIndex]; // e.g., "2025-08"
-    console.log("monthId from availableMonths:", monthId);
-    const currentYearMonth = new Date().toISOString().slice(0, 7); // e.g., "2025-08"
+    const monthId = availableMonths[currentMonthIndex];
+    const currentYearMonth = new Date().toISOString().slice(0, 7);
 
     if (monthId === currentYearMonth) {
-        // If the selected month is the current month, use the 'this_month' quick filter
-        // which is updated more frequently by traffic_monitor.sh
         applyFilter('this_month');
     } else {
-        // For past months, use the pre-aggregated monthly file
         applyFilter(`month_${monthId}`);
+    }
+
+    // Update pills bar — only show when 2+ months selected (multi-month view)
+    if (selectedMonths.length > 1) {
+        renderSelectedMonthsPills();
+    } else {
+        // Single month — hide pills bar entirely
+        const bar = document.getElementById('selected-months-bar');
+        if (bar) bar.style.display = 'none';
     }
 }
 
@@ -409,6 +570,258 @@ function loadMonthData() {
  */
 function showLoader(show) {
     document.getElementById('loader-overlay').style.display = show ? 'flex' : 'none';
+}
+
+/**
+ * Fetch, merge, and render data for multiple selected months.
+ * This is the core multi-month filter function — replaces single-month loading
+ * when the user selects 2+ months via the picker panel.
+ *
+ * @param {string[]} monthIds - Array of month IDs like ['2025-10', '2025-09']
+ */
+async function applyMultiMonthFilter(monthIds) {
+    console.log("applyMultiMonthFilter called with months:", monthIds);
+
+    if (!monthIds || monthIds.length === 0) {
+        // Fallback to current month if nothing selected
+        console.log("No months selected, falling back to 'this_month'.");
+        applyFilter('this_month');
+        return;
+    }
+
+    // Single month → use existing loadMonthData() path (no merge needed)
+    if (monthIds.length === 1) {
+        currentMonthIndex = availableMonths.indexOf(monthIds[0]);
+        if (currentMonthIndex === -1) currentMonthIndex = 0;
+        updateMonthNavigator();
+        loadMonthData();
+        return;
+    }
+
+    // 2+ months: fetch each month's JSON in parallel, then merge client-side
+    showLoader(true);
+    try {
+        const fetchPromises = monthIds.map(monthId => {
+            const currentYearMonth = new Date().toISOString().slice(0, 7);
+            // Current month uses the live-updating file; past months use archived files
+            if (monthId === currentYearMonth) {
+                return fetchData('traffic_period_current_month.json');
+            } else {
+                return fetchData(`traffic_month_${monthId}.json`);
+            }
+        });
+
+        const results = await Promise.all(fetchPromises);
+
+        // Filter out any failed fetches (null results) but proceed with what we have
+        const validResults = results.filter(r => r !== null);
+        if (validResults.length === 0) {
+            console.error("All month fetches failed.");
+            alert("Could not load data for any selected month.");
+            showLoader(false);
+            return;
+        }
+
+        // Warn if some months failed
+        if (validResults.length < monthIds.length) {
+            console.warn(`Only ${validResults.length} of ${monthIds.length} months loaded successfully.`);
+        }
+
+        // Merge data from all months into a single combined object
+        const mergedData = mergeMonthData(validResults, monthIds);
+
+        // Set filter type — 'multi_month' triggers quota hiding (same as all_time)
+        currentFilterType = 'multi_month';
+
+        // Calculate the combined date range for device modal apps API
+        const sortedMonthIds = [...monthIds].sort(); // oldest first
+        const [oldestYear, oldestMonth] = sortedMonthIds[0].split('-');
+        const [newestYear, newestMonth] = sortedMonthIds[sortedMonthIds.length - 1].split('-');
+        currentDisplayStartDate = `${oldestYear}-${oldestMonth}-01`;
+        const newestLastDay = new Date(parseInt(newestYear), parseInt(newestMonth), 0).getDate();
+        currentDisplayEndDate = `${newestYear}-${newestMonth}-${String(newestLastDay).padStart(2, '0')}`;
+
+        // Clear sevenDayData — no trend for multi-month views
+        sevenDayDataGlobal = null;
+
+        // Update global state
+        currentDevices = mergedData.devices;
+        window.currentDevices = currentDevices;
+        updateCurrentDevices(mergedData.devices);
+        updateSelectedDevicesWithNewData(mergedData.devices);
+
+        // Refresh grouping UI if devices are selected
+        if (getSelectedDevices().length > 0) {
+            updateGroupingUI(mergedData.devices);
+            syncCheckboxes(mergedData.devices);
+        }
+
+        // Build the display title: "Period Overview: Oct 2025 + Sep 2025"
+        const titleLabels = monthIds.map(id => {
+            const [y, m] = id.split('-');
+            return translate(monthNames[parseInt(m) - 1]) + ' ' + y;
+        });
+        document.getElementById('overview-title').textContent =
+            `${translate('Period Overview')}: ${titleLabels.join(' + ')}`;
+
+        // Render charts and stats (same pipeline as applyFilter)
+        console.log("Merged data before rendering:", mergedData);
+        const daysInPeriod = mergedData.stats_bytes.days_in_period || 1;
+        updateMainStats(mergedData.stats_bytes, 'multi_month', daysInPeriod);
+        renderCharts(mergedData.barChart, mergedData.devices.slice(0, 10), mergedData.topApps);
+
+        // Render device view
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+            const container = document.getElementById('device-cards-container');
+            container.innerHTML = renderDeviceCards(mergedData.devices, null);
+            applyTranslations();
+            initializeTooltips();
+        } else {
+            sortTable(currentSort.column, false);
+        }
+
+        // Update the pills bar — pass fresh merged data so GB is accurate
+        renderSelectedMonthsPills(mergedData.devices);
+
+    } catch (error) {
+        console.error("Error in applyMultiMonthFilter:", error);
+        alert("Error loading multi-month data: " + error.message);
+    } finally {
+        showLoader(false);
+    }
+}
+
+/**
+ * Merge data from multiple month JSON files into a single combined dataset.
+ * Strategy: sum numeric values, concatenate arrays, key-by-MAC for devices.
+ *
+ * @param {Object[]} dataResults - Array of month data objects from fetchData()
+ * @param {string[]} monthIds - Corresponding month IDs (for ordering)
+ * @returns {Object} Merged data object with same structure as a single month file
+ */
+function mergeMonthData(dataResults, monthIds) {
+    // ── Merge stats_bytes (sum all numeric fields) ──
+    const mergedStats = {
+        dl_bytes: 0,
+        ul_bytes: 0,
+        total_bytes: 0,
+        devices_count: 0,
+        // Quota hidden for multi-month — set placeholder values
+        quotaType: 'multi_month',
+        quotaGB: 0,
+        days_in_period: 0
+    };
+
+    // ── Merge barChart (concatenate labels + values in chronological order) ──
+    // Sort results by monthId ascending so oldest month's days come first
+    const sorted = dataResults
+        .map((data, i) => ({ data, monthId: monthIds[i] }))
+        .sort((a, b) => a.monthId.localeCompare(b.monthId));
+
+    const mergedLabels = [];
+    const mergedValuesBytes = [];
+
+    // ── Merge devices (key by MAC, sum bytes) ──
+    const deviceMap = new Map(); // MAC -> merged device object
+
+    // ── Merge topApps (key by app name, sum total_bytes) ──
+    const appMap = new Map(); // name -> { name, total_bytes }
+
+    sorted.forEach(({ data, monthId }) => {
+        if (!data) return;
+
+        // Stats: sum numeric fields
+        if (data.stats_bytes) {
+            const sb = data.stats_bytes;
+            mergedStats.dl_bytes += (sb.dl_bytes || 0);
+            mergedStats.ul_bytes += (sb.ul_bytes || 0);
+            mergedStats.total_bytes += (sb.total_bytes || 0);
+            // days_in_period accumulates across months
+            const daysInMonth = data.barChart?.labels?.length || 30;
+            mergedStats.days_in_period += daysInMonth;
+        }
+
+        // Bar chart: concatenate labels and values (chronological order)
+        if (data.barChart) {
+            if (data.barChart.labels) {
+                mergedLabels.push(...data.barChart.labels);
+            }
+            if (data.barChart.values_bytes) {
+                mergedValuesBytes.push(...data.barChart.values_bytes);
+            }
+        }
+
+        // Devices: key by MAC, sum bytes across months
+        if (data.devices) {
+            data.devices.forEach(device => {
+                const mac = device.mac;
+                if (deviceMap.has(mac)) {
+                    // Accumulate into existing entry
+                    const existing = deviceMap.get(mac);
+                    existing.dl_bytes += (device.dl_bytes || 0);
+                    existing.ul_bytes += (device.ul_bytes || 0);
+                    existing.total_bytes += (device.total_bytes || 0);
+                    // Name/MAC from most recent month (since sorted ascending,
+                    // the last month processed is the most recent)
+                    existing.name = device.name;
+                } else {
+                    // First time seeing this device — clone it
+                    deviceMap.set(mac, { ...device });
+                }
+            });
+        }
+
+        // Top apps: key by name, sum total_bytes
+        if (data.topApps) {
+            data.topApps.forEach(app => {
+                if (appMap.has(app.name)) {
+                    appMap.get(app.name).total_bytes += (app.total_bytes || 0);
+                } else {
+                    appMap.set(app.name, { name: app.name, total_bytes: app.total_bytes || 0 });
+                }
+            });
+        }
+    });
+
+    // Build merged barChart object
+    const mergedBarChart = {
+        labels: mergedLabels,
+        values_bytes: mergedValuesBytes,
+        title: translate('Combined Daily Traffic') || 'Combined Daily Traffic'
+    };
+
+    // Convert deviceMap back to array, recalculate percentages, reset period-specific metrics
+    const mergedDevices = Array.from(deviceMap.values()).map(device => ({
+        ...device,
+        // Recalculate percentage based on combined totals
+        percentage: mergedStats.total_bytes > 0
+            ? (device.total_bytes / mergedStats.total_bytes) * 100
+            : 0,
+        // Reset period-specific metrics — meaningless for multi-month view
+        trend_bytes: [],
+        avg_daily_gb: 0,
+        peak_day: null,
+        recent_vs_avg_percent: 0
+    }));
+
+    // Sort devices by total_bytes descending (same as backend does)
+    mergedDevices.sort((a, b) => (b.total_bytes || 0) - (a.total_bytes || 0));
+
+    // Set device count in stats
+    mergedStats.devices_count = mergedDevices.length;
+
+    // Convert appMap back to array, sort by total descending, take top 15
+    const mergedTopApps = Array.from(appMap.values())
+        .sort((a, b) => (b.total_bytes || 0) - (a.total_bytes || 0))
+        .slice(0, 15);
+
+    return {
+        stats_bytes: mergedStats,
+        barChart: mergedBarChart,
+        devices: mergedDevices,
+        topApps: mergedTopApps
+    };
 }
 
 /**
@@ -432,16 +845,18 @@ async function applyFilter(filterType) {
     let daysInPeriod = 0;
 
     // Ensure routerTodayFormatted is set before any other logic
-    const allTimeData = await fetchData('traffic_period_all-time.json');
-    if (allTimeData && allTimeData.barChart && allTimeData.barChart.labels && allTimeData.barChart.labels.length > 0) {
-        routerTodayFormatted = allTimeData.barChart.labels[allTimeData.barChart.labels.length - 1];
+    // (Last 7 Days is regenerated every 5 min and never skipped,
+    // so its last label is always the router's current date.)
+    sevenDayData = await fetchData('traffic_period_last-7-days.json');
+    if (sevenDayData && sevenDayData.barChart && sevenDayData.barChart.labels && sevenDayData.barChart.labels.length > 0) {
+        routerTodayFormatted = sevenDayData.barChart.labels[sevenDayData.barChart.labels.length - 1];
     } else {
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         routerTodayFormatted = `${yyyy}-${mm}-${dd}`;
-        console.warn("Could not determine router's date from all_time_data.json. Falling back to client date.");
+        console.warn("Could not determine router's date from last-7-days report. Falling back to client date.");
     }
 
     // Now use todayFormatted (which is the router's date) for all calculations
@@ -611,6 +1026,16 @@ async function applyFilter(filterType) {
         const activeButton = document.querySelector(`.quick-filters button[data-filter-type="${filterType}"]`);
         if (activeButton) {
             activeButton.classList.add('active');
+        }
+    }
+    
+    // Show active state for Select Months button when viewing month(s)
+    const selectMonthsBtn = document.getElementById('select-months-btn');
+    if (selectMonthsBtn) {
+        if (isMonthFilter || filterType === 'this_month') {
+            selectMonthsBtn.classList.add('active');
+        } else if (selectedMonths && selectedMonths.length > 0) {
+            selectMonthsBtn.classList.add('active');
         }
     }
 
@@ -859,8 +1284,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeRouterDate(); // Call the new function here
 
     // --- AUTHENTICATION LOGIC ---
-    await checkAuth(initMonthNavigator, applyFilter, initPalestineKid);
-    attachLoginFormListeners(initMonthNavigator, initPalestineKid);
+    await checkAuth(initMonthNavigator, applyFilter, async () => {
+        initPalestineKid();
+        signalContentReady();
+    });
+    attachLoginFormListeners(initMonthNavigator, async () => {
+        initPalestineKid();
+        signalContentReady();
+    });
 
     // --- ORIGINAL PAGE SETUP LOGIC ---
     checkRestoreStatus(); // Check for restore events on page load
@@ -898,6 +1329,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentMonthIndex !== -1) {
             updateMonthNavigator();
         }
+        // Update the "Current Month" button text
+        updateSelectMonthsBadge();
         // Update quota display if we have current stats
         if (currentStats && currentFilterType) {
             updateQuotaDisplay(currentStats, currentFilterType);

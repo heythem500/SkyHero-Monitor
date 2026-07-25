@@ -9,6 +9,7 @@
 
 import { formatBytes, generateSparkline, renderDeviceBarChart } from './utils.js';
 import { translate } from './i18n.js';
+import { privateDisplayName, privateDisplayMac } from './settings_privatemode.js';
 
 /**
  * Render device table rows
@@ -22,8 +23,8 @@ function renderTable(devices, handleSelectionChange) {
         const trafficClass = totalVal > 40 ? 'traffic-high' : totalVal > 10 ? 'traffic-medium' : 'traffic-low';
         return `<tr>
                     <td><input type="checkbox" class="device-checkbox" data-mac="${d.mac}"></td>
-                    <td><span style="cursor: pointer;" onclick="window.showDeviceCardModalFromTable('${d.mac}')">${d.name}</span></td>
-                    <td>${d.mac}</td>
+                    <td><span style="cursor: pointer;" onclick="window.showDeviceCardModalFromTable('${d.mac}')">${privateDisplayName(d.name, d.mac)}</span></td>
+                    <td class="device-mac-cell">${privateDisplayMac(d.mac)}</td>
                     <td>${formatBytes(d.dl_bytes)}</td>
                     <td>${formatBytes(d.ul_bytes)}</td>
                     <td>${(d.percentage || 0).toFixed(2)}%</td>
@@ -38,7 +39,13 @@ function renderTable(devices, handleSelectionChange) {
  * @param {Object|null} sevenDayData - Seven day data for trend visualization
  * @returns {string} HTML string for device cards
  */
-function renderDeviceCards(devices, sevenDayData = null) {
+/**
+ * @param {Array<Object>} devices
+ * @param {Object|null} sevenDayData
+ * @param {{ forceReal?: boolean }} [opts] - forceReal: skip private-mode masking (device modal)
+ */
+function renderDeviceCards(devices, sevenDayData = null, opts = {}) {
+    const forceReal = !!opts.forceReal;
     const sevenDayMap = new Map();
     if (sevenDayData && sevenDayData.devices) {
         sevenDayData.devices.forEach(d => {
@@ -64,12 +71,15 @@ function renderDeviceCards(devices, sevenDayData = null) {
             alertMessage = `<span data-i18n="Usage is within normal range">Usage is within normal range</span>`;
         }
 
+        const displayName = forceReal ? (d.name || 'Unknown Device') : privateDisplayName(d.name, d.mac);
+        const displayMac = forceReal ? (d.mac || '') : privateDisplayMac(d.mac);
+
         return `
         <div class="device-card" data-mac="${d.mac}">
             <div class="card-header">
                 <div>
-                    <div class="device-name">${d.name || 'Unknown Device'}</div>
-                    <div class="device-mac">${d.mac || ''}</div>
+                    <div class="device-name">${displayName}</div>
+                    <div class="device-mac">${displayMac}</div>
                 </div>
                 <div class="selection-circle-test" onclick="toggleDeviceSelection('${d.mac}', event)"></div>
             </div>

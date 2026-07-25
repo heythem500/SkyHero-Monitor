@@ -9,6 +9,7 @@
 
 import { formatBytes } from './utils.js';
 import { translate } from './i18n.js';
+import { privateDisplayName, privateDisplayGroupName } from './settings_privatemode.js';
 
 // Global variables for grouping functionality
 export let selectedDevices = [];
@@ -47,9 +48,21 @@ export function updateSelectedDevicesWithNewData(currentDevices) {
     });
 
     // Update selectedDevices with new data from currentDevices
+    // If device not in new period, create placeholder with 0 traffic (fixes stale data issue)
     selectedDevices = selectedDevices.map(selectedDevice => {
         const updatedDevice = currentDevicesMap.get(selectedDevice.mac);
-        return updatedDevice || selectedDevice; // Keep original if not found in new data
+        if (updatedDevice) {
+            return updatedDevice;
+        }
+        // Device not in new period - create fresh placeholder with 0 traffic
+        return {
+            mac: selectedDevice.mac,
+            name: selectedDevice.name || selectedDevice.mac,
+            total_bytes: 0,
+            dl_bytes: 0,
+            ul_bytes: 0,
+            percentage: 0
+        };
     });
 }
 
@@ -61,17 +74,20 @@ export function updateSelectedDevicesWithNewData(currentDevices) {
 function setEditMode(isEditing, groupName = '') {
     const saveGroupBtn = document.getElementById('save-group-btn');
     const cancelUpdateBtn = document.getElementById('cancel-update-btn');
+    const deleteGroupBtn = document.getElementById('delete-group-btn');
     const groupNameInput = document.getElementById('group-name-input');
 
     if (isEditing) {
         editingGroupIndex = savedGroups.findIndex(group => group.name === groupName);
         saveGroupBtn.textContent = translate('Update Group');
         cancelUpdateBtn.style.display = 'inline-block';
+        deleteGroupBtn.style.display = 'inline-block';
         groupNameInput.value = groupName;
     } else {
         editingGroupIndex = -1;
         saveGroupBtn.textContent = translate('Save Group');
         cancelUpdateBtn.style.display = 'none';
+        deleteGroupBtn.style.display = 'none';
         groupNameInput.value = '';
     }
 }
@@ -83,14 +99,20 @@ function setEditMode(isEditing, groupName = '') {
  * @param {Array<Object>} devices - Array of all devices
  */
 function handleSelectionChange(mac, isSelected, devices) {
+    // Check if device exists in current devices array
     const device = devices.find(d => d.mac === mac);
-    if (!device) return;
-
-    const isAlreadySelected = selectedDevices.some(d => d.mac === mac);
-
-    if (isSelected && !isAlreadySelected) {
-        selectedDevices.push(device);
-    } else if (!isSelected) {
+    
+    // For adding a device - only if found in current devices
+    if (isSelected) {
+        if (device) {
+            const isAlreadySelected = selectedDevices.some(d => d.mac === mac);
+            if (!isAlreadySelected) {
+                selectedDevices.push(device);
+            }
+        }
+    } else {
+        // For removing - remove from selectedDevices regardless of whether it's in current devices
+        // This works for both active and inactive devices
         selectedDevices = selectedDevices.filter(d => d.mac !== mac);
     }
     updateGroupingUI(devices);
@@ -163,17 +185,23 @@ function updateGroupingUI(devices) {
     const chartLabels = [];
     const chartData = [];
 
+    // Render all devices - show active normally, inactive with "no traffic" indicator
+    // Only include active devices in analytics/chart calculations
     selectedDevices.forEach(device => {
+        const isInactive = device.total_bytes === 0;
+        const trafficLabel = '';
         const pill = document.createElement('div');
-        pill.className = 'pill';
+        pill.className = isInactive ? 'pill inactive' : 'pill';
         pill.innerHTML = `
-            ${device.name}
+            ${privateDisplayName(device.name, device.mac)}${trafficLabel}
             <button class="remove-btn" data-mac="${device.mac}">&times;</button>
         `;
         pillsContainer.appendChild(pill);
-        groupTraffic += device.total_bytes;
-        chartLabels.push(device.name);
-        chartData.push(device.total_bytes);
+        if (!isInactive) {
+            groupTraffic += device.total_bytes;
+            chartLabels.push(privateDisplayName(device.name, device.mac));
+            chartData.push(device.total_bytes);
+        }
     });
 
     const totalNetworkTraffic = devices.reduce((sum, device) => sum + device.total_bytes, 0);
@@ -255,7 +283,7 @@ function toggleGroupChart() {
             toggleButton.textContent = translate('Hide Chart');
             // Re-render chart if it was hidden and there are selected devices
             if (selectedDevices.length > 0) {
-                updateGroupChart(selectedDevices.map(d => d.name), selectedDevices.map(d => d.total_bytes));
+                updateGroupChart(selectedDevices.map(d => privateDisplayName(d.name, d.mac)), selectedDevices.map(d => d.total_bytes));
             }
         } else {
             chartContainer.style.display = 'none';
@@ -321,8 +349,10 @@ async function renderSavedGroups() {
             savedGroups.forEach((group, index) => {
                 const pill = document.createElement('div');
                 pill.className = 'saved-group-pill';
-                pill.textContent = group.name;
+                // Display only: real name stays in memory / server JSON for load/save
+                pill.textContent = privateDisplayGroupName(group.name);
                 pill.dataset.index = index;
+                pill.dataset.realName = group.name;
                 savedGroupsContainer.appendChild(pill);
             });
             // Add Clear All button
@@ -358,14 +388,18 @@ async function saveGroup() {
                 body: JSON.stringify({ name: name, devices: deviceMacs })
             });
             const result = await response.json();
-            if (result.success) {
+if (result.success) {
                 // Update local savedGroups array
                 if (editingGroupIndex !== -1) {
                     savedGroups[editingGroupIndex] = { name: name, devices: deviceMacs };
+                    // Show success feedback when updating
+                    const saveGroupBtn = document.getElementById('save-group-btn');
+                    saveGroupBtn.classList.add('success-flash');
+                    setTimeout(() => saveGroupBtn.classList.remove('success-flash'), 1500);
                 } else {
                     savedGroups.push({ name: name, devices: deviceMacs });
                 }
-                setEditMode(false); // Exit edit mode after saving/updating
+                // Keep edit mode active after update - user can make more changes or click Cancel when done
                 renderSavedGroups();
             } else {
                 alert('Failed to save group: ' + result.error);
@@ -414,6 +448,17 @@ export function getSavedGroups() {
  */
 export function setSavedGroups(groups) {
     savedGroups = groups;
+}
+
+/**
+ * Get the current group being edited
+ * @returns {Object|null} The current group object or null if not editing
+ */
+export function getCurrentEditingGroup() {
+    if (editingGroupIndex === -1 || !savedGroups[editingGroupIndex]) {
+        return null;
+    }
+    return savedGroups[editingGroupIndex];
 }
 
 // Export functions for use in other modules
