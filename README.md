@@ -19,7 +19,7 @@ SkyHero is a lightweight analytics suite built for **ASUS routers running ASUSWR
 
 It provides clear insights into bandwidth usage, device quotas, and traffic behavior — all from your router, without cloud dependencies.
 
-Built on a **modern Python foundation**, SkyHero v2.1 runs locally, processes data efficiently, and displays results in an easy-to-read format.
+Built on a **modern Python foundation**, SkyHero v2.4 runs locally, processes data efficiently, and displays results in an easy-to-read format.
 
 ---
 
