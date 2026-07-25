@@ -1,9 +1,14 @@
 import os
 import json
+import re
 from datetime import datetime, timedelta
 from .config import Config
 from .database import get_db_connection, ensure_healthy_database
-from .utils import bytes_to_gb, get_date_range, get_device_name
+from .utils import bytes_to_gb, get_date_range, get_all_device_names, get_device_name
+
+# Import notification module for rule evaluation
+# This enables automated notification rules to fire during each monitor run
+from .notify import evaluate_rules, get_known_macs_from_db
 
 def get_appropriate_quota(start_date_str, end_date_str):
     """
@@ -124,13 +129,17 @@ def create_daily_rollup(date_str):
 
         conn.close()
 
+        # Batch fetch all device names once instead of one subprocess per device
+        device_name_map = get_all_device_names()
+
         # --- LEAN APPROACH: Daily rollup contains only raw byte counts ---
         devices_list = []
         for mac, dl, ul, total in devices_rows:
             percentage = (total / total_bytes * 100) if total_bytes > 0 else 0
+            device_name = device_name_map.get(mac.upper(), get_device_name(mac))
             devices_list.append({
                 "mac": mac,
-                "name": get_device_name(mac),
+                "name": device_name,
                 "dl_bytes": dl,
                 "ul_bytes": ul,
                 "total_bytes": total,
@@ -139,31 +148,45 @@ def create_daily_rollup(date_str):
             })
 
         # --- ENHANCE: Add 30-day context metrics and anomaly for single-day views ---
+        # Fixes #7: Load all 30 files once into lookup dict → O(30) instead of O(devices × 30)
         thirty_days_ago = (datetime.strptime(date_str, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
         thirty_files = [os.path.join(Config.DAILY_DIR, f"{d}.json") for d in get_date_range(thirty_days_ago, date_str)]
+        
+        # Load all 30 files ONCE into a lookup dict, then attach per-device data from memory
+        device_30_lookup = {}  # {mac: [{date: str, total_bytes: int}, ...]}
+        valid_file_count = 0
+        for f in thirty_files:
+            if os.path.exists(f) and os.path.getsize(f) > 0:
+                try:
+                    with open(f, 'r') as fp:
+                        d = json.load(fp)
+                        date_label = d['barChart']['labels'][0]
+                        for dev in d.get('devices', []):
+                            mac = dev.get('mac')
+                            if mac not in device_30_lookup:
+                                device_30_lookup[mac] = []
+                            device_30_lookup[mac].append({
+                                "date": date_label,
+                                "total_bytes": dev.get('total_bytes', 0)
+                            })
+                except (json.JSONDecodeError, KeyError):
+                    continue  # Skip corrupted or incomplete files
+                valid_file_count += 1
+        
+        # Now attach 30-day data to each device from lookup (no more file scanning per device)
         for device in devices_list:
-            device_30_total = 0
-            device_30_daily = []
-            for f in thirty_files:
-                if os.path.exists(f) and os.path.getsize(f) > 0:
-                    try:
-                        with open(f, 'r') as fp:
-                            d = json.load(fp)
-                            for dev in d.get('devices', []):
-                                if dev['mac'] == device['mac']:
-                                    device_30_total += dev.get('total_bytes', 0)
-                                    device_30_daily.append({"date": d['barChart']['labels'][0], "total_bytes": dev.get('total_bytes', 0)})
-                    except (json.JSONDecodeError, KeyError):
-                        continue  # Skip corrupted or incomplete files
-            if device_30_total > 0 and len([f for f in thirty_files if os.path.exists(f)]) >= 7:  # Require at least 7 days of data
-                device['avg_daily_gb'] = bytes_to_gb(device_30_total) / len([f for f in thirty_files if os.path.exists(f)])
-                peak_30 = max(device_30_daily, key=lambda x: x['total_bytes']) if device_30_daily else {"date": "N/A", "total_bytes": 0}
-                device['peak_day'] = {"date": peak_30['date'], "gb": bytes_to_gb(peak_30.get('total_bytes', 0))}
-                # Add anomaly detection for single-day
+            device_30_data = device_30_lookup.get(device['mac'], [])
+            if device_30_data and valid_file_count >= 7:
+                # Has enough 30-day data — calculate averages and peak
+                device_30_total = sum(d['total_bytes'] for d in device_30_data)
+                device['avg_daily_gb'] = bytes_to_gb(device_30_total) / valid_file_count
+                peak_30 = max(device_30_data, key=lambda x: x['total_bytes'])
+                device['peak_day'] = {"date": peak_30['date'], "gb": bytes_to_gb(peak_30['total_bytes'])}
+                # Anomaly detection: warn if today's usage > threshold
                 total_gb = bytes_to_gb(device['total_bytes'])
                 device['recent_vs_avg_percent'] = 999 if total_gb > Config.DEVICE_HIGH_USAGE_ALERT_GB else 0
             else:
-                # Fallback to single-day values if insufficient 30-day data
+                # Fallback: use single-day values (not enough 30-day data yet)
                 device['avg_daily_gb'] = bytes_to_gb(device['total_bytes'])
                 device['peak_day'] = {"date": date_str, "gb": bytes_to_gb(device['total_bytes'])}
                 device['recent_vs_avg_percent'] = 0  # No anomaly if no data
@@ -471,23 +494,66 @@ def get_device_apps(mac, start_date, end_date):
         try:
             start_dt = datetime.strptime(start_date, '%Y-%m-%d')
             end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+
+            # Check if this is a complete month (starts on day 1, ends on month end, AND both dates are in the same month)
+            if start_dt.year == end_dt.year and start_dt.month == end_dt.month:
+                next_month_first = datetime(end_dt.year + (end_dt.month // 12), ((end_dt.month % 12) + 1), 1)
+                last_day_of_month = (next_month_first - timedelta(days=1)).strftime('%Y-%m-%d')
+
+                if start_date.endswith('-01') and end_date == last_day_of_month:
+                    month_file_name = f"traffic_month_{end_date[:7]}.json"
+                    month_file_path = os.path.join(Config.PERIOD_DIR, month_file_name)
+                    if os.path.exists(month_file_path):
+                        with open(month_file_path, 'r') as f:
+                            month_data = json.load(f)
+
+                        # Find the specific device in the monthly data
+                        for device in month_data.get('devices', []):
+                            if device['mac'] == mac:
+                                return {"apps": device.get('topApps', [])}
+                        return {"apps": []}
             
-            # Check if this is a complete month (starts on day 1 and ends on month end)
-            next_month_first = datetime(end_dt.year + (end_dt.month // 12), ((end_dt.month % 12) + 1), 1)
-            last_day_of_month = (next_month_first - timedelta(days=1)).strftime('%Y-%m-%d')
-            
-            if start_date.endswith('-01') and end_date == last_day_of_month:
-                month_file_name = f"traffic_month_{end_date[:7]}.json"
-                month_file_path = os.path.join(Config.PERIOD_DIR, month_file_name)
-                if os.path.exists(month_file_path):
-                    with open(month_file_path, 'r') as f:
-                        month_data = json.load(f)
+            # For multi-month ranges, aggregate apps from existing monthly files
+            # This is much faster than calling build_period_report for long periods
+            if start_dt < end_dt:
+                # Generate list of months in the range
+                months_in_range = []
+                current = datetime(start_dt.year, start_dt.month, 1)
+                end_marker = datetime(end_dt.year, end_dt.month, 1)
+                while current <= end_marker:
+                    months_in_range.append(current.strftime('%Y-%m'))
+                    # Move to next month
+                    if current.month == 12:
+                        current = datetime(current.year + 1, 1, 1)
+                    else:
+                        current = datetime(current.year, current.month + 1, 1)
+                
+                # Try to aggregate from monthly files
+                if len(months_in_range) > 1:
+                    aggregated_apps = {}
+                    found_any_month = False
                     
-                    # Find the specific device in the monthly data
-                    for device in month_data.get('devices', []):
-                        if device['mac'] == mac:
-                            return {"apps": device.get('topApps', [])}
-                    return {"apps": []}
+                    for month_id in months_in_range:
+                        month_file_name = f"traffic_month_{month_id}.json"
+                        month_file_path = os.path.join(Config.PERIOD_DIR, month_file_name)
+                        if os.path.exists(month_file_path):
+                            found_any_month = True
+                            with open(month_file_path, 'r') as f:
+                                month_data = json.load(f)
+                            
+                            # Find the device and aggregate its apps
+                            for device in month_data.get('devices', []):
+                                if device['mac'] == mac:
+                                    for app in device.get('topApps', []):
+                                        app_name = app.get('name', '')
+                                        app_bytes = app.get('total_bytes', 0)
+                                        aggregated_apps[app_name] = aggregated_apps.get(app_name, 0) + app_bytes
+                                    break
+                    
+                    if found_any_month:
+                        # Sort by total bytes descending and return top apps
+                        sorted_apps = sorted(aggregated_apps.items(), key=lambda x: x[1], reverse=True)[:15]
+                        return {"apps": [{"name": name, "total_bytes": total} for name, total in sorted_apps]}
         except ValueError:
             # If date parsing fails, continue with regular build_period_report approach
             pass
@@ -530,7 +596,13 @@ def create_monthly_reports():
         print("No meaningful daily data found. Skipping monthly aggregation.")
         return
 
-    monthly_prefixes = sorted(list(set([f.split('-')[0] + '-' + f.split('-')[1] for f in meaningful_daily_files])))
+    # Extract YYYY-MM prefixes from valid daily filenames only
+    monthly_prefixes = []
+    for f in meaningful_daily_files:
+        match = re.match(r'^(\d{4})-(\d{2})-\d{2}\.json$', f)
+        if match:
+            monthly_prefixes.append(match.group(1) + '-' + match.group(2))
+    monthly_prefixes = sorted(list(set(monthly_prefixes)))
     
     # Filter out months that don't have sufficient data
     valid_monthly_prefixes = []
@@ -543,6 +615,12 @@ def create_monthly_reports():
     if not valid_monthly_prefixes:
         print("No months with sufficient data found. Skipping monthly aggregation.")
         return
+    
+    # Process each month — smart generation (2026-04-17)
+    # - Past months: generate only if file doesn't exist (new user with historical DB)
+    # - Current month: always regenerate (today's fresh data for dashboard)
+    today = datetime.now()
+    current_month_prefix = today.strftime('%Y-%m')
     
     for month_prefix in valid_monthly_prefixes:
         try:
@@ -562,12 +640,19 @@ def create_monthly_reports():
             end_date = last_day_of_month.strftime('%Y-%m-%d')
 
             # For the current month, only aggregate up to today
-            today_str = datetime.now().strftime('%Y-%m-%d')
-            if end_date > today_str:
-                end_date = today_str
+            if month_prefix == current_month_prefix:
+                end_date = today.strftime('%Y-%m-%d')
 
-            print(f"Processing month: {month_prefix}")
             output_filename = f"traffic_month_{month_prefix}.json"
+            output_path = os.path.join(Config.PERIOD_DIR, output_filename)
+            
+            # Smart skip logic
+            if month_prefix != current_month_prefix and os.path.exists(output_path):
+                # Past month with existing file — skip (already complete)
+                print(f"Month {month_prefix}: up-to-date — skipping.")
+                continue
+            
+            print(f"Processing month: {month_prefix}")
             build_period_report(start_date, end_date, output_filename=output_filename)
         except (ValueError, IndexError) as e:
             print(f"Skipping invalid month_prefix '{month_prefix}': {e}")
@@ -617,28 +702,74 @@ def run_traffic_monitor():
     # This will now include the freshly updated data for today.
     build_period_report(start_of_month, today, output_filename="traffic_period_current_month.json")
     
-    # All-Time
-    # Query database for earliest timestamp to ensure all historical data is included
-    first_day = None
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT MIN(timestamp) FROM traffic")
-        result = cursor.fetchone()
-        if result and result[0]:
-            earliest_ts = result[0]
-            first_day = datetime.fromtimestamp(earliest_ts).strftime('%Y-%m-%d')
-        conn.close()
-    except Exception as e:
-        print(f"Warning: Could not query database for earliest date: {e}")
-
-    if first_day:
-        build_period_report(first_day, today, output_filename="traffic_period_all-time.json")
-        print(f"Generated 'All-Time' report from {first_day} to {today}")
+    # All-Time report — Smart generation (2026-04-16)
+    # - New users / missing file: generate on first run (cheap for small databases)
+    # - Existing users: regenerate only when yesterday's complete day is missing (data-driven)
+    all_time_file = os.path.join(Config.PERIOD_DIR, "traffic_period_all-time.json")
+    should_generate_all_time = False
+    if not os.path.exists(all_time_file):
+        print("'All-Time' report does not exist — generating for first time.")
+        should_generate_all_time = True
+    elif os.path.getsize(all_time_file) < 100:
+        print("'All-Time' report is empty or corrupt — regenerating.")
+        should_generate_all_time = True
     else:
-        print("No historical data found in database, skipping 'All-Time' report.")
+        # Check if All-Time file is older than yesterday's daily JSON
+        # This ensures we update when yesterday's complete data is available
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday_file = os.path.join(Config.DAILY_DIR, f"{yesterday}.json")
+        if os.path.exists(yesterday_file):
+            if os.path.getmtime(all_time_file) < os.path.getmtime(yesterday_file):
+                print(f"'All-Time' report is older than yesterday's complete data ({yesterday}) — refreshing.")
+                should_generate_all_time = True
+            else:
+                print(f"'All-Time' report is up-to-date — skipping.")
+        else:
+            print(f"'All-Time' report is up-to-date — skipping.")
+
+    if should_generate_all_time:
+        first_day = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT MIN(timestamp) FROM traffic")
+            result = cursor.fetchone()
+            if result and result[0]:
+                earliest_ts = result[0]
+                first_day = datetime.fromtimestamp(earliest_ts).strftime('%Y-%m-%d')
+            conn.close()
+        except Exception as e:
+            print(f"Warning: Could not query database for earliest date: {e}")
+
+        if first_day:
+            build_period_report(first_day, today, output_filename="traffic_period_all-time.json")
+            print(f"Generated 'All-Time' report from {first_day} to {today}")
+        else:
+            print("No historical data found in database, skipping 'All-Time' report.")
     print("Standard reports generated.")
     
     # Also generate monthly reports
     create_monthly_reports()
+
+    # Evaluate notification rules against current device data
+    # This checks active rules (download, upload, specific_app, any_app_exceeds, avg_daily, new_device)
+    # and sends notifications if thresholds are exceeded.
+    # Deduplication ensures max 1 notification per rule+device per day.
+    try:
+        today = datetime.now().strftime('%Y-%m-%d')
+        daily_file = os.path.join(Config.DAILY_DIR, f'{today}.json')
+        devices_data = []
+        if os.path.exists(daily_file):
+            with open(daily_file, 'r') as f:
+                daily_data = json.load(f)
+                devices_data = daily_data.get('devices', [])
+
+        if devices_data:
+            known_macs = get_known_macs_from_db()
+            notifications_sent = evaluate_rules(devices_data, known_macs)
+            if notifications_sent > 0:
+                print(f"Notification rules evaluated: {notifications_sent} notification(s) sent.")
+    except Exception as e:
+        print(f"Error evaluating notification rules: {e}")
+
     return True

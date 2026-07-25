@@ -123,6 +123,10 @@ def init_db():
             PRIMARY KEY (mac, timestamp, app_name)
         );
     """)
+
+    # Index on timestamp for all aggregation/sync queries that filter by timestamp range
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_traffic_timestamp ON traffic(timestamp);")
+
     conn.commit()
     conn.close()
 
