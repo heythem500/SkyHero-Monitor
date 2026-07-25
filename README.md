@@ -1,9 +1,11 @@
 # SkyHero-Monitor
- SkyHero v2.1 — Bandwidth &amp; Quota Analytics for ASUS Routers running ASUSWRT-Merlin (Unofficial) built on a modern Python foundation.
+ SkyHero v2.4 — Bandwidth &amp; Quota Analytics for ASUS Routers running ASUSWRT-Merlin (Unofficial) built on a modern Python foundation.
  
 This project is an example of collaboration between a human and AI — a small experiment built with curiosity and code.
 <p align="center">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img01.jpg">
+ old vs new
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img01.jpg">
   </p>
 
 ⭐ Give this project a star if you think it deserves some popularity!
@@ -100,6 +102,18 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img08.jpg" width="30%" height="auto">
   </p>
   
+*( v2.4 chnages)* </p>
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img02.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img03.jpg" width="30%" height="auto">
+
+  ---
+
+## 🔄 SkyHero updates
+*( v2.1 base)* : was released in 10-2025
+
+*( v2.4 chnages)* : released in 7-2026, most recent</p>
+what's new? highly optimized to boost peformance, decrease load and to better manage data, new featurs: notes box , push notificatio, setting control from dashboard including quota, private mode, month selector was changed.
+
   ---
   
 ## Options & Customization
