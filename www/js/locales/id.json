@@ -189,6 +189,23 @@
       "PeakDayTooltip": "Menyoroti hari dengan penggunaan data tertinggi.\nUntuk hari tunggal: puncak dalam 30 hari terakhir.\nUntuk periode lebih lama: puncak dalam waktu yang dipilih.",
       "TrendTooltip": "Visual penggunaan data harian dari waktu ke waktu.\nUntuk hari tunggal: grafik 7 hari.\nUntuk periode lebih lama: sparkline dari waktu yang dipilih.",
       "AlertTooltip": "Untuk hari tunggal: memperingatkan jika lebih dari 5 GB (dapat diubah di opsi menu 8: Kelola Batas Kuota).\nUntuk periode lebih lama: memberi peringatan jika hari terkini >18% di atas rata-rata periode.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "Pilih bulan",
+      "Current Month": "Bulan ini",
+      "Select Months to Compare": "Pilih bulan untuk dibandingkan",
+      "Select All": "Pilih semua",
+      "Apply Selected": "Terapkan pilihan",
+      "Selected:": "📅 Dipilih:",
+      "{N} month(s) · {GB} GB": "{N} bulan · {GB} GB",
+      "Combined Daily Traffic": "Lalu lintas harian gabungan"
     }
 }

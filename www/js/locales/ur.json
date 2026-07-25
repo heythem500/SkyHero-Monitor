@@ -209,6 +209,23 @@
       "PeakDayTooltip": "ڈیٹا کے استعمال کے سب سے زیادہ دن کو نمایاں کرتا ہے.\nایک دن کے لیے: آخری 30 دنوں میں چوٹی.\nطویل عرصوں کے لیے: منتخب وقت میں چوٹی.",
       "TrendTooltip": "وقت کے ساتھ روزانہ ڈیٹا کے استعمال کا بصری.\nایک دن کے لیے: 7 دنوں کا چارٹ.\nطویل عرصوں کے لیے: منتخب وقت کی سپارک لائن.",
       "AlertTooltip": "ایک دن کے لیے: اگر 5 گیگا بائٹ سے زیادہ ہو تو خبردار کرتا ہے (مینو آپشن 8 میں تبدیل کیا جا سکتا ہے: کوٹا کی حدود کا انتظام کریں).\nطویل عرصوں کے لیے: اگر حالیہ دن >18% مدت کے اوسط سے اوپر ہو تو الرٹ کرتا ہے.",
-      "tooltipIcon": "؟"
+      "tooltipIcon": "؟",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "مہینے منتخب کریں",
+      "Current Month": "موجودہ مہینہ",
+      "Select Months to Compare": "موازنے کے لیے مہینے منتخب کریں",
+      "Select All": "سب منتخب کریں",
+      "Apply Selected": "منتخب شدہ لاگو کریں",
+      "Selected:": "📅 منتخب:",
+      "{N} month(s) · {GB} GB": "{N} مہینے · {GB} GB",
+      "Combined Daily Traffic": "مشترکہ روزانہ ٹریفک"
     }
 }

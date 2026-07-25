@@ -152,6 +152,23 @@
       "PeakDayTooltip": "Markeert de dag met hoogste data-gebruik.\nVoor één dag: piek in laatste 30 dagen.\nVoor langere periodes: piek in geselecteerde tijd.",
       "TrendTooltip": "Visueel van dagelijks data-gebruik in de tijd.\nVoor één dag: 7-daagse grafiek.\nVoor langere periodes: sparkline van geselecteerde tijd.",
       "AlertTooltip": "Voor één dag: waarschuwt als boven 5 GB (kan worden gewijzigd in menu optie 8: Quota Limieten Beheren).\nVoor langere periodes: waarschuwt als recente dag >18% boven periode gemiddelde.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "Maanden selecteren",
+      "Current Month": "Huidige maand",
+      "Select Months to Compare": "Maanden selecteren om te vergelijken",
+      "Select All": "Alles selecteren",
+      "Apply Selected": "Geselecteerde toepassen",
+      "Selected:": "📅 Geselecteerd:",
+      "{N} month(s) · {GB} GB": "{N} maanden · {GB} GB",
+      "Combined Daily Traffic": "Gecombineerd dagelijks verkeer"
     }
 }

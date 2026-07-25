@@ -190,6 +190,23 @@
       "PeakDayTooltip": "ডেটা ব্যবহারের সর্বোচ্চ দিন হাইলাইট করে.\nএকক দিনের জন্য: শেষ 30 দিনের শীর্ষ.\nদীর্ঘ সময়ের জন্য: নির্বাচিত সময়ে শীর্ষ.",
       "TrendTooltip": "সময়ের সাথে দৈনিক ডেটা ব্যবহারের ভিজ্যুয়াল.\nএকক দিনের জন্য: 7-দিনের চার্ট.\nদীর্ঘ সময়ের জন্য: নির্বাচিত সময়ের স্পার্কলাইন.",
       "AlertTooltip": "একক দিনের জন্য: 5 GB এর বেশি হলে সতর্ক করে (মেনু অপশন 8 এ পরিবর্তন করা যায়: কোটা সীমা পরিচালনা).\nদীর্ঘ সময়ের জন্য: যদি সাম্প্রতিক দিন >18% সময়কালের গড়ের উপরে হয় তাহলে সতর্ক করে.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "মাস নির্বাচন করুন",
+      "Current Month": "বর্তমান মাস",
+      "Select Months to Compare": "তুলনা করার জন্য মাস নির্বাচন করুন",
+      "Select All": "সবগুলি নির্বাচন করুন",
+      "Apply Selected": "নির্বাচিত প্রয়োগ করুন",
+      "Selected:": "📅 নির্বাচিত:",
+      "{N} month(s) · {GB} GB": "{N} মাস · {GB} GB",
+      "Combined Daily Traffic": "সম্মিলিত দৈনিক ট্রাফিক"
     }
 }

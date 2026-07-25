@@ -152,6 +152,23 @@
       "PeakDayTooltip": "Markerar dagen med högst dataanvändning.\nFör en enskild dag: topp i de senaste 30 dagarna.\nFör längre perioder: topp i vald tid.",
       "TrendTooltip": "Visuell av daglig dataanvändning över tid.\nFör en enskild dag: 7-dagars diagram.\nFör längre perioder: sparkline av vald tid.",
       "AlertTooltip": "För en enskild dag: varnar om över 5 GB (kan ändras i menyval 8: Hantera Kvotgränser).\nFör längre perioder: varnar om senaste dagen >18% över periodens genomsnitt.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "Välj månader",
+      "Current Month": "Nuvarande månad",
+      "Select Months to Compare": "Välj månader att jämföra",
+      "Select All": "Välj alla",
+      "Apply Selected": "Tillämpa valda",
+      "Selected:": "📅 Valda:",
+      "{N} month(s) · {GB} GB": "{N} månader · {GB} GB",
+      "Combined Daily Traffic": "Kombinerad daglig trafik"
     }
 }

@@ -152,6 +152,23 @@
       "PeakDayTooltip": "Evidenzia il giorno con il più alto utilizzo dei dati.\nPer un singolo giorno: picco negli ultimi 30 giorni.\nPer periodi più lunghi: picco nel tempo selezionato.",
       "TrendTooltip": "Visuale dell'utilizzo giornaliero dei dati nel tempo.\nPer un singolo giorno: grafico di 7 giorni.\nPer periodi più lunghi: sparkline del tempo selezionato.",
       "AlertTooltip": "Per un singolo giorno: avverte se supera 5 GB (può essere cambiato nell'opzione menu 8: Gestisci Limiti Quota).\nPer periodi più lunghi: avverte se giorno recente >18% sopra la media del periodo.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "Seleziona mesi",
+      "Current Month": "Mese corrente",
+      "Select Months to Compare": "Seleziona mesi da confrontare",
+      "Select All": "Seleziona tutti",
+      "Apply Selected": "Applica selezionati",
+      "Selected:": "📅 Selezionati:",
+      "{N} month(s) · {GB} GB": "{N} mesi · {GB} GB",
+      "Combined Daily Traffic": "Traffico giornaliero combinato"
     }
 }

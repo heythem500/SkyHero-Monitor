@@ -189,6 +189,23 @@
       "PeakDayTooltip": "Veri kullanımının en yüksek günü vurgular.\nTek gün için: son 30 günde zirve.\nDaha uzun dönemler için: seçilen zamanda zirve.",
       "TrendTooltip": "Zaman içinde günlük veri kullanımının görseli.\nTek gün için: 7 günlük grafik.\nDaha uzun dönemler için: seçilen zamanın sparkline'ı.",
       "AlertTooltip": "Tek gün için: 5 GB'den fazla ise uyarır (menü seçeneği 8'de değiştirilebilir: Kota Sınırlarını Yönet).\nDaha uzun dönemler için: son gün >%18 dönem ortalamasının üstünde ise uyarır.",
-      "tooltipIcon": "?"
+      "tooltipIcon": "?",
+      "Device Notes": "Device Notes",
+      "Type @ to mention a device. Click an existing tag to edit its stats.": "Type @ to mention a device. Click an existing tag to edit its stats.",
+      "Last saved:": "Last saved:",
+      "Save": "Save",
+      "Saved!": "Saved!",
+      "Not saved yet": "Not saved yet",
+      "Undo": "Undo",
+      "Redo": "Redo",
+      "Add Device": "+ Add Device",
+      "Select Months": "Ayları seç",
+      "Current Month": "Mevcut ay",
+      "Select Months to Compare": "Karşılaştırmak için ayları seç",
+      "Select All": "Tümünü seç",
+      "Apply Selected": "Seçilenleri uygula",
+      "Selected:": "📅 Seçilen:",
+      "{N} month(s) · {GB} GB": "{N} ay · {GB} GB",
+      "Combined Daily Traffic": "Kombine günlük trafik"
     }
 }
