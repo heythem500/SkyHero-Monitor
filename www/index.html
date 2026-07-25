@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="css/charts.css">
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/grouping.css">
+    <link rel="stylesheet" href="css/notes.css">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/utilities.css">
     
     <!-- Chart.js library -->
@@ -53,13 +56,28 @@
                     <h3 data-i18n="Quick Filters">Quick Filters</h3>
                     <div class="quick-filters">
                         <button class="quick-filter-button-item" data-filter-type="all_time" data-i18n="All Time">All Time</button>
-<button class="quick-filter-button-item" data-filter-type="today" data-i18n="Today">Today</button>
-<button class="quick-filter-button-item" data-filter-type="yesterday" data-i18n="Yesterday">Yesterday</button>
-<button class="quick-filter-button-item" data-filter-type="last_7_days" data-i18n="Last 7 Days">Last 7 Days</button>
-                        <div class="navigator-subtle" id="month-navigator" style="display: none;">
-                            <button class="arrow-btn" id="next-month">&lsaquo;</button>
-                            <div class="month-display" id="current-month-display"></div>
-                            <button class="arrow-btn" id="prev-month">&rsaquo;</button>
+                        <button class="quick-filter-button-item" data-filter-type="today" data-i18n="Today">Today</button>
+                        <button class="quick-filter-button-item" data-filter-type="yesterday" data-i18n="Yesterday">Yesterday</button>
+                        <button class="quick-filter-button-item" data-filter-type="last_7_days" data-i18n="Last 7 Days">Last 7 Days</button>
+                        <button class="select-months-btn" id="select-months-btn">
+                            Current Month <span class="select-months-badge" id="select-months-badge" style="display:none;">0</span>
+                        </button>
+                    </div>
+                    <!-- Month picker panel (toggled by "Select Months" button) -->
+                    <div class="month-picker-panel" id="month-picker-panel" style="display:none;">
+                        <div class="month-picker-header">
+                            <h4 data-i18n="Select Months to Compare">Select Months to Compare</h4>
+                            <div class="picker-actions">
+                                <button class="picker-btn picker-btn-select-all" id="picker-select-all-btn" data-i18n="Select All">Select All</button>
+                                <button class="picker-btn picker-btn-clear-all" id="picker-clear-all-btn" data-i18n="Clear All">Clear All</button>
+                            </div>
+                        </div>
+                        <div class="month-list" id="month-list">
+                            <!-- Checkboxes rendered dynamically by events.js -->
+                        </div>
+                        <div class="picker-footer">
+                            <button class="picker-btn picker-btn-cancel" id="picker-cancel-btn" data-i18n="Cancel">Cancel</button>
+                            <button class="picker-btn picker-btn-apply" id="picker-apply-btn" data-i18n="Apply Selected">Apply Selected</button>
                         </div>
                     </div>
                 </div>
@@ -80,6 +98,13 @@
                         <button class="apply-btn" id="apply-filter-btn" data-i18n="Apply Filter">Apply Filter</button>
                     </div>
                 </div>
+            </div>
+            <!-- Selected months pills bar (full-width below controls, outside control-panel) -->
+            <div class="selected-months-bar" id="selected-months-bar" style="display:none;">
+                <span class="bar-label" data-i18n="Selected:">📅 Selected:</span>
+                <div class="pills-container" id="selected-months-pills"></div>
+                <span class="pill-summary" id="selected-months-summary"></span>
+                <button class="clear-pills-btn" id="clear-pills-btn" data-i18n="Clear All">Clear All</button>
             </div>
             <div class="quota-card">
                 <div class="quota-header-and-details">
@@ -163,7 +188,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="topAppsCard">
             <h2 data-i18n="Top Applications/Websites">Top Applications/Websites</h2>
             <div class="chart-container">
                 <canvas id="topAppsChart"></canvas>
@@ -189,10 +214,49 @@
                         <button id="save-group-btn" data-i18n="Save Group">Save Group</button>
                     </div>
                     <button id="cancel-update-btn" data-i18n="Cancel Update" style="display:none;">Cancel Update</button>
+                    <button id="delete-group-btn" data-i18n="Delete Group" style="display:none; color: #d32f2f;">Delete Group</button>
                     <button id="toggle-group-chart-btn" data-i18n="Hide Chart">Hide Chart</button>
                 </div>
             </div>
             <div id="saved-groups-container" class="saved-groups-container"></div>
+
+            <div class="notes-action-row">
+                <button id="notes-toggle-btn" class="notes-toggle-btn">📝 Notes</button>
+                <button id="notifications-toggle-btn" class="notifications-toggle-btn">🔔 Notifications</button>
+                <button id="settings-toggle-btn" class="settings-toggle-btn">⚙️</button>
+            </div>
+
+            <!-- Notes Panel -->
+            <div id="notes-panel" class="notes-panel collapsed">
+                <div class="notes-header">
+                    <h3 id="notes-header-title" data-i18n="Device Notes">Device Notes</h3>
+                    <button class="notes-close-btn" id="notes-close-btn">&times;</button>
+                </div>
+                <div class="notes-toolbar">
+                    <div class="notes-toolbar-left">
+                        <button id="notes-undo-btn" disabled title="Undo" data-i18n="Undo">↩ Undo</button>
+                        <button id="notes-redo-btn" disabled title="Redo" data-i18n="Redo">↪ Redo</button>
+                    </div>
+                    <button id="notes-add-device-btn" data-i18n="Add Device">+ Add Device</button>
+                </div>
+                <div class="notes-editor" id="notes-editor" contenteditable="true" data-i18n-placeholder="Type @ to mention a device. Click an existing tag to edit its stats."></div>
+                <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
+                <div class="notes-stats-picker" id="notes-stats-picker">
+                    <span class="sp-label">Stats:</span>
+                    <span class="sp-pill" data-stat="download">⬇ Download</span>
+                    <span class="sp-pill" data-stat="upload">⬆ Upload</span>
+                    <span class="sp-pill" data-stat="total">📊 Total</span>
+                    <span class="sp-pill" data-stat="percentage">% Percentage</span>
+                </div>
+                <div class="notes-hint" id="notes-hint-text" data-i18n="Type @ to mention a device. Click an existing tag to edit its stats.">Type @ to mention a device. Click an existing tag to edit its stats.</div>
+                <div class="notes-footer">
+                    <span class="notes-last-saved" id="notes-last-saved" data-i18n="Not saved yet">Not saved yet</span>
+                    <button class="notes-save-btn" id="notes-save-btn" data-i18n="Save">Save</button>
+                </div>
+            </div>
+
+            <!-- Autocomplete dropdown (outside panel to avoid overflow: hidden clipping) -->
+            <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
 
             <div class="table-responsive" id="device-table-container">
     <table>
@@ -222,7 +286,7 @@
     
 
     <footer>
-        <span>Free Palestine <img src="palestine_flag.png" alt="Flag of Palestine" style="height: 16px; vertical-align: middle;"> | &copy; 2025 heythem. All rights reserved. <a href="https://github.com/heythem500/SkyHero-Monitor" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/github.svg" alt="GitHub" style="height: 16px; vertical-align: middle;"></a></span>
+        <span>Free Palestine <img src="palestine_flag.png" alt="Flag of Palestine" style="height: 16px; vertical-align: middle;"> | &copy; 2025 heythem. All rights reserved. <a href="https://github.com/heythem500" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/github.svg" alt="GitHub" style="height: 16px; vertical-align: middle;"></a></span>
     </footer>
 
     
@@ -234,6 +298,8 @@
     <script type="module" src="js/charts.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/grouping.js"></script>
+    <script type="module" src="js/notes.js"></script>
+    <script type="module" src="js/notifications.js"></script>
     <script type="module" src="js/i18n.js"></script>
     <script type="module" src="js/events.js"></script>
     <script type="module" src="js/main.js"></script>
