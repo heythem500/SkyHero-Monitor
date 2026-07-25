@@ -102,9 +102,12 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-img08.jpg" width="30%" height="auto">
   </p>
   
-*( v2.4 chnages)* </p>
+*( v2.4 chnages)* </p> 
+<p align="center">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img02.jpg" width="30%" height="auto">
   <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img03.jpg" width="30%" height="auto">
+  <img src="https://github.com/heythem500/SkyHero-Monitor/blob/main/screnshots/skyhero-v2.4-img04.jpg" width="30%" height="auto">
+  </p>
 
   ---
 
@@ -112,7 +115,7 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
 *( v2.1 base)* : was released in 10-2025
 
 *( v2.4 chnages)* : released in 7-2026, most recent</p>
-what's new? highly optimized to boost peformance, decrease load and to better manage data, new featurs: notes box , push notificatio, setting control from dashboard including quota, private mode, month selector was changed.
+what's new? highly optimized to boost peformance, decrease load and to better manage data, new featurs: notes box , push notificatio, new settings to control dashboard ui including quota and elements to show and hide, private mode, month selector was changed, groups were improved.
 
   ---
   
