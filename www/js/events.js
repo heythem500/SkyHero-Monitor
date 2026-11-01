@@ -33,6 +33,7 @@ import {
     getCurrentMonthIndex as mainGetCurrentMonthIndex,
     setCurrentMonthIndex as mainSetCurrentIndex,
     getCurrentSort as mainGetCurrentSort,
+    getCurrentFilterType as mainGetCurrentFilterType,
     clearMultiMonthSelection,
     renderSelectedMonthsPills,
     updateSelectMonthsBadge,
@@ -118,7 +119,8 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
 
     // ── Multi-Month Picker Event Listeners ──
 
-    // "Select Months" button — load current month then toggle picker panel
+    // "Select Months" button — toggle picker panel.
+    // Data is only reloaded when the current view is not a month view.
     const selectMonthsBtn = document.getElementById('select-months-btn');
     const monthPickerPanel = document.getElementById('month-picker-panel');
     if (selectMonthsBtn && monthPickerPanel) {
@@ -130,9 +132,22 @@ export function attachEventListeners(devices, getMonths, getCurrentIndex, setCur
             } else {
                 // If multi-month pills are visible, just open picker (don't reset)
                 const bar = document.getElementById('selected-months-bar');
-                const hasPills = bar && bar.style.display !== 'none' && getSelectedMonths().length > 1;
-                if (!hasPills && mainGetAvailableMonths().length > 0) {
-                    // Single month view — reset to current month and load it
+                const selected = getSelectedMonths();
+                const hasPills = bar && bar.style.display !== 'none' && selected.length > 1;
+
+                // Is the dashboard already showing exactly the single selected month?
+                // (Current month → 'this_month', past month → 'month_YYYY-MM')
+                const currentYm = new Date().toISOString().slice(0, 7);
+                const currentFilter = mainGetCurrentFilterType();
+                const isShowingSelectedMonth =
+                    selected.length === 1 &&
+                    (selected[0] === currentYm
+                        ? currentFilter === 'this_month'
+                        : currentFilter === `month_${selected[0]}`);
+
+                if (!hasPills && !isShowingSelectedMonth && mainGetAvailableMonths().length > 0) {
+                    // Not a month view (quick filter, date drill-down, billing) —
+                    // reset to the most recent month and load it
                     setSelectedMonths([mainGetAvailableMonths()[0]]);
                     mainSetCurrentIndex(0);
                     updateSelectMonthsBadge();

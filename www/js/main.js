@@ -84,6 +84,11 @@ export function setSelectedMonths(months) {
     selectedMonths = months;
 }
 
+// Export getter function for currentFilterType
+export function getCurrentFilterType() {
+    return currentFilterType;
+}
+
 // Export getter function for currentSort
 export function getCurrentSort() {
     return currentSort;
@@ -486,6 +491,10 @@ function renderSelectedMonthsPills(overrideDevices) {
                 // Single month — hide pills bar, reload as single month
                 bar.style.display = 'none';
                 updateSelectMonthsBadge();
+                // Keep currentMonthIndex in sync with the leftover pill,
+                // otherwise loadMonthData() would load the previously viewed month
+                currentMonthIndex = availableMonths.indexOf(selectedMonths[0]);
+                if (currentMonthIndex === -1) currentMonthIndex = 0;
                 loadMonthData();
             } else {
                 // Multiple months — reapply merged view
