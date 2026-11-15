@@ -5,7 +5,7 @@ import os
 # =============================================================================
 
 def detect_usb_backup_dir():
-    """Auto-detect USB mount point with Superman-Tacking project and set backup directory."""
+    """Auto-detect USB mount point with the SkyHero project and set backup directory."""
     # Common mount point patterns to check
     mount_patterns = [
         '/tmp/mnt',
@@ -42,8 +42,9 @@ def detect_usb_backup_dir():
                 # Skip directories we can't read
                 continue
     
-    # Fallback to default if no USB with project found
-    return '/tmp/mnt/ym/superman-backups'
+    # Fallback to a backups folder next to the project (never a hardcoded USB label)
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(project_dir, 'backups')
 
 class Config:
     """

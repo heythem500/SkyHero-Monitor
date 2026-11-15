@@ -8,7 +8,12 @@ import json
 import re
 import string
 import time
-import requests
+try:
+    import requests
+except ImportError:
+    # Notifications need `requests`, but the dashboard and monitor must keep
+    # working if it is missing. The installer installs it; this is a safety net.
+    requests = None
 from datetime import datetime, date
 from .config import Config
 
@@ -456,6 +461,9 @@ def send_notification(title, message, target_identifier=None, attachment_data=No
     Returns:
         (success: bool, error_message: str or None)
     """
+    if requests is None:
+        return False, "Python 'requests' module is not installed (run: opkg install python3-requests)"
+
     if config is None:
         config = load_notification_config()
     provider = config.get("provider")
@@ -656,6 +664,9 @@ def send_via_webhook(cfg, title, message):
 
 def test_provider(provider, config):
     """Test a notification provider connection."""
+    if requests is None:
+        print("[notify] Python 'requests' module is not installed; cannot test providers.")
+        return False
     test_title = "SkyHero Test"
     test_message = "This is a test notification from SkyHero."
     
