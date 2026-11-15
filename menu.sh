@@ -1,4 +1,22 @@
-#!/bin/bash
+#!/bin/sh
+# SkyHero menu needs bash (it uses `read -p` and `select`).
+# /bin/sh always exists on Merlin, so use it as a tiny bootstrap and re-exec
+# whichever bash is actually present. If none is installed, fail clearly
+# instead of letting the kernel report "not found"/"bad interpreter".
+if [ -z "${SKYHERO_IN_BASH:-}" ]; then
+    if [ -x /opt/bin/bash ]; then
+        SKYHERO_IN_BASH=1 exec /opt/bin/bash "$0" "$@"
+    elif [ -x /bin/bash ]; then
+        SKYHERO_IN_BASH=1 exec /bin/bash "$0" "$@"
+    elif [ -x /usr/bin/bash ]; then
+        SKYHERO_IN_BASH=1 exec /usr/bin/bash "$0" "$@"
+    fi
+fi
+if [ -z "${BASH_VERSION:-}" ]; then
+    echo "SkyHero menu needs bash, which is not installed."
+    echo "Install it with: opkg install bash"
+    exit 1
+fi
 set -eu
 
 # --- Color Definitions ---
@@ -29,7 +47,7 @@ mkdir -p "$BASE_DIR/logs"
 # --- Helper Functions ---
 verify_installation() {
     echo "
-Verifying active cron jobs for SkyHero Monitor v2.1..."
+Verifying active cron jobs for Superman & SkyHero Monitor v2.1..."
     cru l | grep "skyhero_monitor\\|skyhero_backup" || echo "No v2.1 cron jobs found."
     
     echo "

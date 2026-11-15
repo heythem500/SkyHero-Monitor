@@ -1,5 +1,8 @@
 #!/bin/ash
-set -eu
+# NOTE: intentionally no `set -e`. A failing optional step (data generation,
+# server start) must not abort the install before the `skyhero` symlink and
+# service/boot entries are created.
+set -u
 
 # Ensure Entware paths are in the script's PATH
 export PATH=/opt/bin:/opt/sbin:$PATH
@@ -28,6 +31,12 @@ echo -e "${C_CYAN}--- Superman & skyHero Monitor v2.1 Installer ---${C_RESET}"
 
 # 1. Dependency Check
 echo "Checking dependencies..."
+if ! command -v opkg >/dev/null 2>&1; then
+    echo -e "${C_RED}Entware (opkg) not found. SkyHero v2 needs Entware for Python.${C_RESET}"
+    echo "Run 'amtm' over SSH, choose Entware, install it on the USB drive,"
+    echo "reboot, then re-run ./install.sh"
+    exit 1
+fi
 if [ ! -x "/opt/bin/python3" ]; then
     echo -e "${C_YELLOW}Python3 not found. Attempting to install with opkg...${C_RESET}"
     opkg update
@@ -39,14 +48,39 @@ if [ ! -x "/opt/bin/python3" ]; then
     fi
 fi
 
+# pip is a separate package on Entware: python3 alone does not include it.
+if ! /opt/bin/python3 -m pip --version >/dev/null 2>&1; then
+    echo -e "${C_YELLOW}pip not found. Installing python3-pip...${C_RESET}"
+    opkg install python3-pip
+fi
+
 if ! python3 -c "import flask" >/dev/null 2>&1; then
     echo -e "${C_YELLOW}Flask not found. Attempting to install with pip3...${C_RESET}"
-    pip3 install Flask
+    /opt/bin/python3 -m pip install --no-cache-dir Flask
     hash -r # Re-hash the PATH to find the new command
-    if ! python3 -c "import flask" >/dev/null 2>&1; then
-        echo -e "${C_RED}Failed to install Flask. Please install it manually and re-run.${C_RESET}"
-        exit 1
-    fi
+fi
+
+# system/notify.py imports `requests` at startup. Install it explicitly.
+if ! python3 -c "import requests" >/dev/null 2>&1; then
+    echo -e "${C_YELLOW}requests not found. Installing python3-requests...${C_RESET}"
+    opkg install python3-requests
+fi
+if ! python3 -c "import requests" >/dev/null 2>&1; then
+    echo -e "${C_YELLOW}python3-requests unavailable; trying pip...${C_RESET}"
+    /opt/bin/python3 -m pip install --no-cache-dir requests
+fi
+
+# menu.sh is a bash script; Merlin ships ash only.
+if [ ! -x "/opt/bin/bash" ]; then
+    echo -e "${C_YELLOW}bash not found. Installing bash (needed by the menu)...${C_RESET}"
+    opkg install bash
+fi
+
+if ! python3 -c "import flask, requests" >/dev/null 2>&1; then
+    echo -e "${C_RED}Python dependencies are still missing. Run manually:${C_RESET}"
+    echo "  opkg install python3 python3-pip python3-requests bash"
+    echo "  /opt/bin/python3 -m pip install --no-cache-dir Flask requests"
+    exit 1
 fi
 echo -e "${C_GREEN}Dependencies are satisfied.${C_RESET}"
 
@@ -68,8 +102,8 @@ sleep 1 # Give the port a moment to be released
 echo "Setting up cron jobs..."
 cru d skyhero_monitor 2>/dev/null
 cru d skyhero_backup 2>/dev/null
-cru a skyhero_monitor "*/5 * * * *" "python3 $PYTHON_APP_PATH monitor"
-cru a skyhero_backup "0 3 * * *" "python3 $PYTHON_APP_PATH backup"
+cru a skyhero_monitor "*/5 * * * *" "$PYTHON_CMD $PYTHON_APP_PATH monitor"
+cru a skyhero_backup "0 3 * * *" "$PYTHON_CMD $PYTHON_APP_PATH backup"
 echo -e "${C_GREEN}Cron jobs set up successfully.${C_RESET}"
 
 # 4. Run initial data generation
@@ -131,8 +165,10 @@ sleep 2
 if ps | grep 'skyhero.py serve' | grep -v grep > /dev/null; then
     echo -e "${C_GREEN}Server started successfully.${C_RESET}"
 else
-    echo -e "${C_RED}Failed to start the server. Check logs/server.log for details.${C_RESET}"
-    exit 1
+    echo -e "${C_RED}Server failed to start. Last lines of logs/server.log:${C_RESET}"
+    tail -n 20 "$BASE_DIR/logs/server.log" 2>/dev/null || true
+    echo "Continuing installation so the menu/service are still created."
+    echo "Fix the error above, then restart: /opt/etc/init.d/S99superman-v2 restart"
 fi
 
 # 6. Configure for Boot-time Startup
@@ -329,21 +365,11 @@ chmod +x "$BASE_DIR/menu.sh" 2>/dev/null || echo -e "${C_YELLOW}Could not set ex
 # Create a smart symlink - use 'superman' if available, otherwise 'superman2'
 echo "Creating command symlink..."
 if [ -w "/opt/bin" ]; then
-    # Check if /opt/bin/superman exists and points to a valid v2.0 installation
-    if [ -L "/opt/bin/superman" ] && [ -f "/tmp/mnt/ym/superman-v2/scripts/menu.sh" ]; then
-        # v2.0 is installed, use skyhero2 for v2.1
-        SYMLINK_PATH="/opt/bin/skyhero2"
-        SYMLINK_NAME="skyhero2"
-        echo "v2.0 installation detected. Creating symlink as 'skyhero2' to avoid conflict."
-    else
-        # Either no v2.0 or v2.0 is not properly installed, use skyhero
-        SYMLINK_PATH="/opt/bin/skyhero"
-        SYMLINK_NAME="skyhero"
-        echo "Creating symlink as 'skyhero'."
-    fi
-    
-    ln -sf "$BASE_DIR/menu.sh" "$SYMLINK_PATH"
-    echo -e "${C_GREEN}Symlink created. You can now type '$SYMLINK_NAME' to launch the v2.1 menu.${C_RESET}"
+    # Create both commands: users try either name, and neither collides with v2.0.
+    SYMLINK_NAME="skyhero"
+    ln -sf "$BASE_DIR/menu.sh" /opt/bin/skyhero
+    ln -sf "$BASE_DIR/menu.sh" /opt/bin/skyhero2
+    echo -e "${C_GREEN}Commands created: skyhero and skyhero2${C_RESET}"
 
     # Save the symlink name to a file for removal script to know which one to remove
     echo "$SYMLINK_NAME" > "$BASE_DIR/.symlink_name"
