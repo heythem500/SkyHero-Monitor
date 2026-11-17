@@ -70,12 +70,6 @@ if ! python3 -c "import requests" >/dev/null 2>&1; then
     /opt/bin/python3 -m pip install --no-cache-dir requests
 fi
 
-# menu.sh is a bash script; Merlin ships ash only.
-if [ ! -x "/opt/bin/bash" ]; then
-    echo -e "${C_YELLOW}bash not found. Installing bash (needed by the menu)...${C_RESET}"
-    opkg install bash
-fi
-
 if ! python3 -c "import flask, requests" >/dev/null 2>&1; then
     echo -e "${C_RED}Python dependencies are still missing. Run manually:${C_RESET}"
     echo "  opkg install python3 python3-pip python3-requests bash"
@@ -89,14 +83,16 @@ echo "Stopping existing SkyHero v2.1 services (if any)..."
 kill $(ps | grep 'skyhero.py serve' | grep -v grep | awk '{print $1}') 2>/dev/null || true
 
 echo "Ensuring port 8082 is free..."
-if command -v fuser >/dev/null 2>&1; then
-    fuser -k 8082/tcp 2>/dev/null || true
-else
-    # Fallback for systems without fuser
-    # Kill processes that might be using the port
-    ps | grep 'skyhero.py' | grep 'serve' | grep -v grep | awk '{print $1}' | xargs kill 2>/dev/null || true
-fi
+# SkyHero's own server was already stopped above; never kill an unrelated program.
 sleep 1 # Give the port a moment to be released
+
+# If something else still owns the port, name it instead of killing it.
+PORT_OWNER=$(netstat -leWpn 2>/dev/null | grep ':8082 ' | grep -i LISTEN | awk '{print $NF}' | cut -d/ -f1 | head -1)
+if [ -n "$PORT_OWNER" ] && [ "$PORT_OWNER" -eq "$PORT_OWNER" ] 2>/dev/null; then
+    echo -e "${C_YELLOW}Port 8082 is already in use by PID $PORT_OWNER:${C_RESET}"
+    ps w | awk -v p="$PORT_OWNER" '$1 == p { $1 = ""; print; exit }'
+    echo "Installation will continue. Free the port (kill $PORT_OWNER) or expect the server to fail."
+fi
 
 # 3. Set up Cron Jobs
 echo "Setting up cron jobs..."
@@ -159,15 +155,22 @@ python3 "$PYTHON_APP_PATH" monthly-aggregator
 
 # 6. Start the Python web server as a background service
 echo "Starting the SkyHero v2.1 web server..."
-nohup python3 "$PYTHON_APP_PATH" serve > "$BASE_DIR/logs/server.log" 2>&1 &
+nohup "$PYTHON_CMD" "$PYTHON_APP_PATH" serve > "$BASE_DIR/logs/server.log" 2>&1 &
 sleep 2
 
-if ps | grep 'skyhero.py serve' | grep -v grep > /dev/null; then
-    echo -e "${C_GREEN}Server started successfully.${C_RESET}"
+# Success must mean THIS install owns the port, not a stale copy of SkyHero.
+LISTEN_PID=$(netstat -leWpn 2>/dev/null | grep ':8082 ' | grep -i LISTEN | awk '{print $NF}' | cut -d/ -f1 | head -1)
+if [ -z "$LISTEN_PID" ]; then
+    # Fallback for netstat variants that do not print the PID
+    LISTEN_PID=$(ps | grep 'skyhero.py serve' | grep -v grep | grep -F "$BASE_DIR" | awk '{print $1}' | head -1)
+fi
+if [ -n "$LISTEN_PID" ] && ps w | awk -v p="$LISTEN_PID" '$1 == p' | grep -qF "$BASE_DIR/skyhero.py"; then
+    echo -e "${C_GREEN}Server started successfully (PID $LISTEN_PID).${C_RESET}"
 else
-    echo -e "${C_RED}Server failed to start. Last lines of logs/server.log:${C_RESET}"
+    echo -e "${C_RED}Server did not start. Last lines of logs/server.log:${C_RESET}"
     tail -n 20 "$BASE_DIR/logs/server.log" 2>/dev/null || true
     echo "Continuing installation so the menu/service are still created."
+    echo "If the log says the port is in use, run: netstat -leWpn | grep ':8082'"
     echo "Fix the error above, then restart: /opt/etc/init.d/S99superman-v2 restart"
 fi
 
