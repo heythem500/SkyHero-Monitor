@@ -31,7 +31,9 @@ echo -e "${C_CYAN}--- Superman & skyHero Monitor v2.1 Installer ---${C_RESET}"
 
 # 1. Dependency Check
 echo "Checking dependencies..."
-if ! command -v opkg >/dev/null 2>&1; then
+# Plain file test: this BusyBox ash has no `command` builtin (command -v returns 127,
+# which the leading `!` would turn into "Entware not found" on a correct install).
+if [ ! -x /opt/bin/opkg ]; then
     echo -e "${C_RED}Entware (opkg) not found. SkyHero v2 needs Entware for Python.${C_RESET}"
     echo "Run 'amtm' over SSH, choose Entware, install it on the USB drive,"
     echo "reboot, then re-run ./install.sh"
