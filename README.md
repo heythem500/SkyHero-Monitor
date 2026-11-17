@@ -129,7 +129,7 @@ what's new? highly optimized to boost peformance, decrease load and to better ma
    Change it in `config.py`: `WEB_SERVER_HOST = "lan_only"` or `"0.0.0.0"` for WAN.
 
 2. **Port Configuration:**  
-   Default port is `8082`.  
+   Default port is `8082`(this feature not active yet).  
    Change it in `config.py` if needed.
 
 3. **Password Protection:**  
