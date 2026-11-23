@@ -117,8 +117,8 @@ chmod +x /tmp/mnt/usb-name/skyhero-v2/install.sh
 ## 🔄 SkyHero updates
 *( v2.1 base)* : was released in 10-2025
 
-*( v2.4 chnages)* : released in 7-2026, most recent</p>
-what's new? highly optimized to boost peformance, decrease load and to better manage data, new featurs: notes box , push notificatio, new settings to control dashboard ui including quota and elements to show and hide, private mode, month selector was changed, groups were improved.
+*( v2.4 changes)* : released in 7-2026, most recent</p>
+what's new? highly optimized to boost performance, decrease load and to better manage data, new features: notes box , push notification, new settings to control dashboard UI including quota and elements to show and hide, private mode, month selector was changed, groups were improved.
 
   ---
   
@@ -130,7 +130,7 @@ what's new? highly optimized to boost peformance, decrease load and to better ma
 
 2. **Port Configuration:**  
    Default port is `8082`.  
-   Change it in `config.py` if needed (this option not fully active yet).
+   Change it in `config.py` if needed (not yet implemented).
 
 3. **Password Protection:**  
    Password is **disabled by default** (Password Status: DISABLED).  
